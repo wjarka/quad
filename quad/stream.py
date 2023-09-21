@@ -21,19 +21,18 @@ signal_game_cancelled = signal('game-cancelled')
 
 @bp.cli.command('process')
 def process_stream():
+	pacer = Pacer()
+	ndi_connector = NdiConnector(current_app.config["NDI_STREAM"])
+	frame_reader = FrameReader(ndi_connector)
+	frame_processor = FrameProcessor()
+	recorder = Recorder(ndi_connector)
 	try:
-		pacer = Pacer()
-		ndi_connector = NdiConnector(current_app.config["NDI_STREAM"])
-		frame_reader = FrameReader(ndi_connector)
-		frame_processor = FrameProcessor()
-		recorder = Recorder(ndi_connector)
-		try:
-			while (True):
-				pacer.pace()
-				frame = frame_reader.read()
-				frame_processor.process(frame)
-		finally:
-			recorder.stop()
+		while (True):
+			pacer.pace()
+			frame = frame_reader.read()
+			frame_processor.process(frame)
+	finally:
+		recorder.stop()
 
 @signal_game_ends.connect
 def save_last_score(sender, game, **extra):
