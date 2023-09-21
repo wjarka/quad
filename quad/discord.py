@@ -1,21 +1,34 @@
 from flask import Blueprint, current_app
 import discord
 from discord.ext import commands
-from blinker import Namespace
+from blinker import signal
 from .common import Game
 from .youtube import YouTubeUploader
+from .stream import signal_game_ends
+from io import BytesIO
+import cv2
 
 bp = Blueprint('discord', __name__)
+
+@signal_game_ends.connect
+def send_screenshot(sender, game, **extra):
+	webhook = discord.SyncWebhook.from_url(current_app.config["DISCORD_WEBHOOK_GAMES"])
+	frame = game.get_final_score_frame()
+	if (frame is not None):
+		img_string = BytesIO(cv2.imencode('.png', frame)[1].tobytes())
+		file = discord.File(img_string, filename="image.png")
+		embed = discord.Embed()
+		embed.set_image(url="attachment://image.png")
+		webhook.send(game.get_game_identifier(), file=file, embed=embed)
 
 @bp.cli.command('bot')
 def bot():
 	intents = discord.Intents.default()
 	intents.message_content = True
 	bot = commands.Bot(command_presfix='$', intents=intents)
-	discord_signals = Namespace()
 
-	async def reaction_youtube(sender, payload):
-		if (payload.user_id not in current_app.config["DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS"]):
+	async def reaction_youtube(sender, payload, **extra):
+		if ("DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS" in current_app.config and payload.user_id not in current_app.config["DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS"]):
 			return
 
 		channel = await bot.fetch_channel(payload.channel_id)
@@ -30,10 +43,10 @@ def bot():
 			thread = await message.create_thread(name=thread_name)
 		await thread.send(content = yt_link)
 	
-	discord_signals.signal('discord-reaction-youtube').connect(reaction_youtube)
+	signal('discord-reaction-youtube').connect(reaction_youtube)
 
 	@bot.event
 	async def on_raw_reaction_add(payload):
-		await discord_signals.signal('discord-reaction-' + payload.emoji.name).send_async(current_app._get_current_object(), payload=payload)		
+		await signal('discord-reaction-' + payload.emoji.name).send_async(current_app._get_current_object(), payload=payload)		
 	
 	bot.run(current_app.config["DISCORD_BOT_SECRET"])

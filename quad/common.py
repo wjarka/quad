@@ -1,5 +1,20 @@
 from flask import current_app
 from datetime import datetime
+import time
+
+class Pacer:
+	def __init__(self, interval = 0.5):
+		self.interval = interval
+		self.starttime = None
+
+	def pace(self, interval = None):
+		if (interval is not None):
+			self.interval = interval
+		if (self.starttime is None):
+			self.starttime = time.monotonic()
+		else:
+			sleep_time = self.interval - ((time.monotonic() - self.starttime) % self.interval)
+			time.sleep(sleep_time)
 
 class Game:
 	def __init__(self, data = None):

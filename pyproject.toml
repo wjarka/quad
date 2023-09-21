@@ -1,0 +1,27 @@
+[project]
+name = "quad"
+version = "1.0.0"
+description = "Quake Ultimate Analysis and Development. A system to record, analyze, organize Quake Champions recordings and improve in Quake in general"
+dependencies = [
+	"cffi",
+	"coverage",
+	"flask",
+	"google-api-python-client",
+	"oauth2client",
+	"opencv-python",
+	"pexpect",
+	"py-cord",
+	"pytesseract",
+	"pytest"
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["quad"]
