@@ -254,4 +254,4 @@ class Ocr:
 		mask = cv2.inRange(hsv, lower, upper)
 		result = 255 - mask
 		whitelist = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM."
-		return (pytesseract.image_to_string(result, lang='eng',config='--psm 6 --tessdata-dir ' + os.path.join(current_app.root_path, 'assets') + '  -c tessedit_char_whitelist=' + whitelist))
+		return (pytesseract.image_to_string(result, lang='eng',config='--psm 6 --tessdata-dir ' + os.path.join(current_app.root_path, 'assets') + '  -c tessedit_char_whitelist=' + whitelist + ' -c page_separator=""'))
