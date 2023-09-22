@@ -2,8 +2,8 @@ from __future__ import annotations
 from flask import Blueprint, current_app
 from .common import Pacer, Game
 import shlex
-import ndi.finder as finder
-import ndi.receiver as r
+from .ndi import finder
+from .ndi import receiver as r
 import time
 from . import matchers as m
 from blinker import signal
