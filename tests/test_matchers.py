@@ -67,6 +67,9 @@ def test_matcher_data(app, matchers, matcher, image_path, expected_data):
 	('tests/assets/ocr_sl4ve_athena_x1ksAkaBerry_Eisen.png', 'x1ksAkaBerry'),
 	('tests/assets/ocr_an1ol.png', 'an1ol'),
 	('tests/assets/ocr_PLG_JSkey.png', 'PLG JSkey'),
+	('tests/assets/ocr_S0MBR4.png', 'S0MBR4'),
+	('tests/assets/ocr_ChronoSeb.png', 'ChronoSeb'),
+	('tests/assets/ocr_ARTEMKA_XD.png', 'ARTEMKA XD'),
 	# ('tests/assets/ocr_.png', ''),
 ])
 def test_warmupend_ocr(app, matchers, image_path, expected_name):
