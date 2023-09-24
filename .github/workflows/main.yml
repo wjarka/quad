@@ -3,15 +3,14 @@ run-name: Testing and building Quad
 on: [push, workflow_dispatch]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.2'
-          cache: 'pip'
-      - run: sudo apt-get install -y tesseract-ocr
-      - run: pip install -e .
+      - name: Install project
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -e .
       - name: Test with pytest
         run: |
           pip install pytest coverage
@@ -19,5 +18,8 @@ jobs:
       - name: Build Wheel
         run: |
           pip install build
-          python -m build --wheel
-          ls -la dist
+          LINE=`python -m build --wheel | grep "Successfully built"`
+          BUILD_FILE=${LINE#"Successfully built "}
+          deactivate
+          source /srv/quad/.venv/bin/activate
+          pip install dist/$BUILD_FILE
