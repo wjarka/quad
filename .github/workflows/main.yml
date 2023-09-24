@@ -13,10 +13,12 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
+          source .venv/bin/activate
           pip install pytest coverage
           pytest
       - name: Build Wheel
         run: |
+          source .venv/bin/activate
           pip install build
           LINE=`python -m build --wheel | grep "Successfully built"`
           BUILD_FILE=${LINE#"Successfully built "}
