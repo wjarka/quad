@@ -1,4 +1,5 @@
 from __future__ import annotations
+import click
 from flask import Blueprint, current_app
 from .common import Pacer, Game
 import shlex
@@ -17,6 +18,12 @@ signal_game_found = signal('game-found')
 signal_game_starts = signal('game-starts')
 signal_game_ends = signal('game-ends')
 signal_game_cancelled = signal('game-cancelled')
+
+
+@bp.cli.command('twitch')
+@click.argument("delay", required=False)
+def stream_twitch(delay=None):
+	print(f"Not implemented yet. Requested delay is {delay}")
 
 
 @bp.cli.command('process')

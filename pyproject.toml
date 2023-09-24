@@ -1,6 +1,6 @@
 [project]
 name = "quad"
-version = "1.0.0"
+version = "1.0.1"
 description = "Quake Ultimate Analysis and Development. A system to record, analyze, organize Quake Champions recordings and improve in Quake in general"
 dependencies = [
 	"cffi",

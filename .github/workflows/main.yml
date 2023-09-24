@@ -16,7 +16,7 @@ jobs:
           source .venv/bin/activate
           pip install pytest coverage
           pytest
-      - name: Build Wheel
+      - name: Build and Deploy
         run: |
           source .venv/bin/activate
           pip install build
@@ -24,4 +24,4 @@ jobs:
           BUILD_FILE=${LINE#"Successfully built "}
           deactivate
           source /srv/quad/.venv/bin/activate
-          pip install dist/$BUILD_FILE
+          pip install -U dist/$BUILD_FILE
