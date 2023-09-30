@@ -141,9 +141,10 @@ class ProcessManager:
 				self.stop_process(name)
 
 	def stop_process(self, name):
-		self.running_processes[name].terminate()
-		self.running_processes[name].join()
-		del self.running_processes[name]
+		if (name in self.running_processes):
+			self.running_processes[name].terminate()
+			self.running_processes[name].join()
+			del self.running_processes[name]
 
 	def is_alive(self, name):
 		if name in self.running_processes:

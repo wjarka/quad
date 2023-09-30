@@ -68,11 +68,7 @@ class TwitchStreamProcess(multiprocessing.Process):
 		if (self.capture_process is not None):
 			current_app.logger.info("Stopping capture process...")
 			self.capture_process.terminate(force=True)
-			# current_app.logger.info("Waiting for capture process to exit...")
-			# self.capture_process.wait()
 		if (self.stream_process is not None):
-			# current_app.logger.info("Waiting for stream process to exit...")
-			# self.stream_process.wait()
 			import time
 			time.sleep(self.stream_delay)
 			self.stream_process.terminate(force=True)

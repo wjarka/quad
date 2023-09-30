@@ -65,6 +65,6 @@ class RecorderProcess(multiprocessing.Process):
 			current_app.logger.debug("Waiting for the recorder process to exit...")
 			import time
 			time.sleep(5) #Hotfix
-			# self.record_process.wait()
+			self.record_process.terminate()
 		s.signal(s.SIGTERM, self.sigterm_default_handler)
 			
