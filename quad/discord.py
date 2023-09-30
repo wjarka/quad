@@ -4,11 +4,9 @@ from discord.ext import commands
 from blinker import signal
 from .common import Game
 from .youtube import YouTubeUploader
-# from .stream import signal_game_ends
 from io import BytesIO
 import cv2
 import multiprocessing
-import zmq
 
 bp = Blueprint('discord', __name__)
 

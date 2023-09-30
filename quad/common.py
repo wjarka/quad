@@ -2,6 +2,12 @@ from flask import current_app
 from datetime import datetime
 import time
 
+def prepare_command(command):
+	if (current_app.config["FFMPEG_OVER_SSH"]):
+		ssh = f'ssh -t {current_app.config["FFMPEG_OVER_SSH_HOST"]}'
+		command = f'{ssh} "{command}"'
+	return command
+
 class Pacer:
 	def __init__(self, interval = 0.5):
 		self.interval = interval

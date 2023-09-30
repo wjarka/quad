@@ -1,7 +1,8 @@
 from flask import Blueprint, current_app, g
 import time
 from .discord import DiscordBotProcess
-from .stream import RecorderProcess
+from .record import RecorderProcess
+from .stream import TwitchStreamProcess
 from .common import Pacer, Game
 from .ndi import finder
 from .ndi import receiver as r
@@ -9,6 +10,7 @@ from . import matchers as m
 from blinker import signal
 from datetime import datetime, timedelta
 import zmq
+import multiprocessing
 
 signal_game_found = signal('game-found')
 signal_game_starts = signal('game-starts')
@@ -122,6 +124,7 @@ class ProcessManager:
 		self.available_processes = {
 			'discord-bot': DiscordBotProcess,
 			'recorder': RecorderProcess,
+			'twitch-stream': TwitchStreamProcess
 		}
 		self.autostart_processes = ['discord-bot']
 		self.running_processes = {}
@@ -129,11 +132,23 @@ class ProcessManager:
 	def start_process(self, name):
 		p = self.available_processes[name]()
 		p.start()
-		self.running_processes['name'] = p
+		self.running_processes[name] = p
+		
+	def cleanup_finished_processes(self):
+		items = self.running_processes.copy().items()
+		for name, process in items:
+			if (not process.is_alive()):
+				self.stop_process(name)
 
 	def stop_process(self, name):
-		self.running_processes['name'].terminate()
-		del self.running_processes['name']
+		self.running_processes[name].terminate()
+		self.running_processes[name].join()
+		del self.running_processes[name]
+
+	def is_alive(self, name):
+		if name in self.running_processes:
+			return self.running_processes[name].is_alive()
+		return False
 
 	def is_process(self, name):
 		return name in self.available_processes
@@ -146,6 +161,8 @@ class ProcessManager:
 		for name, process in self.running_processes.items():
 			if (not process.daemon):
 				process.terminate()
+		for process in multiprocessing.active_children():
+			process.terminate()
 
 	def _await_process_shutdown(self):
 		for name, process in self.running_processes.items():
@@ -159,7 +176,11 @@ class ProcessManager:
 	def shutdown(self):
 		self._stop_running_processes()
 		self._await_process_shutdown()
-
+		for name, process in self.running_processes.items():
+			current_app.logger.debug(("running_processes", name, process))
+		for process in multiprocessing.active_children():
+			current_app.logger.debug(("active_children", process))
+		
 
 class SignalHandler:
 
@@ -199,21 +220,9 @@ class Core:
 			frame = self.ndi_connector.read()
 			self.frame_processor.process(frame)
 			self.process_manager_server.process_messages()
+			self.process_manager.cleanup_finished_processes()
 		self.process_manager.shutdown()
 		self.process_manager_server.shutdown()
-
-		# Uruchom to co ma być autorun i oczekuj na instrukcje od klientów
-
-class Client:
-
-	def _send_command(self, payload):
-		pass
-
-	def start(self, service):
-		payload = {'service': service, 'action': 'start'}
-
-	def stop(self, service):
-		payload = {'service': service, 'action': 'start'}		
 
 
 class NdiConnector:
@@ -384,4 +393,3 @@ class FrameProcessor:
 	def reset_game(self, frame, meta):
 		g.game = Game(meta)
 		print(g.game.data)
-
