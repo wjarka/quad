@@ -32,16 +32,10 @@ def create_app(test_config=None):
         }
     })
 
-    from . import core
-    app.register_blueprint(core.bp)
-
     from . import stream
     app.register_blueprint(stream.bp)
 
     from . import discord
     app.register_blueprint(discord.bp)
-
-    import multiprocessing
-    multiprocessing.set_start_method('fork', force=True)
 
     return app

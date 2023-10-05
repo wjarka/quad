@@ -1,6 +1,6 @@
 [project]
 name = "quad"
-version = "1.1.2"
+version = "1.0.1"
 description = "Quake Ultimate Analysis and Development. A system to record, analyze, organize Quake Champions recordings and improve in Quake in general"
 dependencies = [
 	"cffi",
@@ -12,8 +12,7 @@ dependencies = [
 	"pexpect",
 	"py-cord",
 	"pytesseract",
-	"pytest",
-        "zmq"
+	"pytest"
 ]
 
 [build-system]

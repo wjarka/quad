@@ -4,13 +4,11 @@ from discord.ext import commands
 from blinker import signal
 from .common import Game
 from .youtube import YouTubeUploader
+from .stream import signal_game_ends
 from io import BytesIO
 import cv2
-import multiprocessing
 
 bp = Blueprint('discord', __name__)
-
-signal_game_ends = signal('game-ends')
 
 @signal_game_ends.connect
 def send_screenshot(sender, game, **extra):
@@ -23,25 +21,7 @@ def send_screenshot(sender, game, **extra):
 		embed.set_image(url="attachment://image.png")
 		webhook.send(game.get_game_identifier(), file=file, embed=embed)
 
-@bp.cli.command('stop')
-def stop():
-	from .core import ProcessManagerZmqClient
-	r = ProcessManagerZmqClient()
-	r.stop_process('discord-bot')
-
-
-@bp.cli.command('start')
-def start():
-	from .core import ProcessManagerZmqClient
-	r = ProcessManagerZmqClient()
-	r.start_process('discord-bot')	
-
-
-
 @bp.cli.command('bot')
-def bot_command():
-	bot()
-
 def bot():
 	intents = discord.Intents.default()
 	intents.message_content = True
@@ -70,11 +50,3 @@ def bot():
 		await signal('discord-reaction-' + payload.emoji.name).send_async(current_app._get_current_object(), payload=payload)		
 	
 	bot.run(current_app.config["DISCORD_BOT_SECRET"])
-
-
-class DiscordBotProcess(multiprocessing.Process):
-
-	# daemon = True
-
-	def run(self):
-		bot()

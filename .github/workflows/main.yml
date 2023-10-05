@@ -1,10 +1,6 @@
 name: Test and Build
 run-name: Testing and building Quad
-on: 
-  push:
-    branches:    
-      - main
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 jobs:
   test:
     runs-on: self-hosted
@@ -28,7 +24,4 @@ jobs:
           BUILD_FILE=${LINE#"Successfully built "}
           deactivate
           source /srv/quad/.venv/bin/activate
-          systemctl stop quad.service || :
           pip install -U dist/$BUILD_FILE
-          cp dist/$BUILD_FILE /var/opt/quad/backups/wheels/
-          systemctl start quad.service
