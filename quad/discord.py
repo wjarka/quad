@@ -4,9 +4,12 @@ from discord.ext import commands
 from blinker import signal
 from .common import Game
 from .youtube import YouTubeUploader
-from .stream import signal_game_ends
+from .core import signal_game_ends
+from threading import Thread
 from io import BytesIO
 import cv2
+import asyncio
+
 
 bp = Blueprint('discord', __name__)
 
@@ -21,7 +24,6 @@ def send_screenshot(sender, game, **extra):
 		embed.set_image(url="attachment://image.png")
 		webhook.send(game.get_game_identifier(), file=file, embed=embed)
 
-@bp.cli.command('bot')
 def bot():
 	intents = discord.Intents.default()
 	intents.message_content = True
@@ -50,3 +52,17 @@ def bot():
 		await signal('discord-reaction-' + payload.emoji.name).send_async(current_app._get_current_object(), payload=payload)		
 	
 	bot.run(current_app.config["DISCORD_BOT_SECRET"])
+
+class DiscordBotThread(Thread):
+
+	daemon = True
+
+	def __init__(self, app):
+		super().__init__()
+		self.app = app
+
+	def run(self):
+		with (self.app.app_context()):
+			event_loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(event_loop)
+			bot()

@@ -8,7 +8,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'quad.sqlite'),
-        FFMPEG_OVER_SSH=False
+        FFMPEG_OVER_SSH=False,
     )
 
     if test_config is None:
@@ -31,6 +31,9 @@ def create_app(test_config=None):
             'level': 'WARN' if "LOG_LEVEL" not in app.config else app.config["LOG_LEVEL"],
         }
     })
+
+    from . import core
+    app.register_blueprint(core.bp)
 
     from . import stream
     app.register_blueprint(stream.bp)

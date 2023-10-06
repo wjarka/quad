@@ -2,6 +2,14 @@ from flask import current_app
 from datetime import datetime
 import time
 
+def prepare_command(command, always_local = False):
+	if (always_local):
+		return command
+	if (current_app.config["FFMPEG_OVER_SSH"]):
+		ssh = f'ssh -t {current_app.config["FFMPEG_OVER_SSH_HOST"]}'
+		command = f'{ssh} "{command}"'
+	return command
+
 class Pacer:
 	def __init__(self, interval = 0.5):
 		self.interval = interval
@@ -49,11 +57,9 @@ class Game:
 
 	def get_recording_path(self):
 		return current_app.config["PATH_RECORDING"].format(**self._path_dictionary())
-		# return self.config.get('paths/recording', self._path_dictionary())
 
 	def get_screenshot_path(self):
 		return current_app.config["PATH_SCREENSHOT"].format(**self._path_dictionary())
-		# return self.config.get('paths/screenshot', self._path_dictionary())
 
 	def get_game_identifier(self):
 		return '-'.join([
