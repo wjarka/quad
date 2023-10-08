@@ -56,12 +56,12 @@ class Core:
 					self.shutdown()
 				if (message.service == 'stream'):
 					if (message.action == 'start'):
-						self.stream.start()
+						self.stream.start(**message.args)
 					if (message.action == 'stop'):
 						self.stream.stop()
 				self.zmq.respond_success()
-		except:
-			self.zmq.respond_fail()
+		except Exception as e:
+			self.zmq.respond_fail(errors=[str(e)])
 
 	def run(self):
 		self.start_threads()

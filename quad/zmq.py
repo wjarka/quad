@@ -2,9 +2,10 @@ from flask import current_app
 import zmq
 
 class Message:
-	def __init__(self, service = None, action = None):
+	def __init__(self, service = None, action = None, args = None):
 		self.service = service
 		self.action = action
+		self.args = args
 
 class Client:
 
@@ -14,12 +15,13 @@ class Client:
 		socket.send_json({
 			'service': message.service,
 			'action': message.action,
+			'args': message.args
 		})
 		response = socket.recv_json()
 		current_app.logger.info(response)
 
-	def start_service(self, name):
-		self.send_message(Message(name, 'start'))
+	def start_service(self, name, args = None):
+		self.send_message(Message(name, 'start', args))
 
 	def stop_service(self, name):
 		self.send_message(Message(name, 'stop'))
@@ -88,15 +90,5 @@ class Server:
 			return None
 		service = json['service']
 		action = json['action']
-		return Message(service, action)
-		# if (service == 'core' and action == 'stop'):
-		# 	signal('app-shutdown').send(self)
-		# 	return
-		# else:
-		# 	if (action == 'start'):
-		# 		current_app.logger.info(f"Starting {service}")
-		# 		self.service_manager.start_service(service)
-		# 	if (action == 'stop'):
-		# 		current_app.logger.info(f"Stopping {service}")
-		# 		self.service_manager.stop_service(service)
-		# self.respond_success()
+		args = json['args'] if 'args' in json else None
+		return Message(service, action, args)

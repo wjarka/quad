@@ -13,19 +13,19 @@ def stop():
 	r = zmq.Client()
 	r.stop_service('stream')
 
-
+@click.option('-d', '--delay')
 @bp.cli.command('start')
-def start():
+def start(delay=None):
 	from . import zmq
 	r = zmq.Client()
-	r.start_service('stream')	
+	r.start_service('stream', {'delay': delay})	
 
 class TwitchStream:
 	def __init__(self):
 		self.capture_process = None
 		self.stream_process = None
 		self.stream_delay_increments = 4
-		self.stream_delay = current_app.config['TWITCH_DELAY']
+		self.stream_delay = current_app.config['TWITCH_DELAY'] if 'TWITCH_DELAY' in current_app.config else None
 		if ("RECORDER_BITRATE" in current_app.config):
 			self.bitrate = current_app.config["RECORDER_BITRATE"]
 		else:
@@ -60,7 +60,9 @@ class TwitchStream:
 				rtmp://waw02.contribute.live-video.net/app/{self.stream_key}{self.stream_params}")
 			self.stream_process = pexpect.spawn(stream_command)
 
-	def start(self):
+	def start(self, delay = None):
+		if (delay is not None):
+			self.stream_delay = delay
 		self.start_capture()
 		thread = threading.Thread(target=self.start_stream, args=(current_app._get_current_object(),))
 		thread.start()
@@ -68,17 +70,18 @@ class TwitchStream:
 	def stop_stream(self, app):
 		with (app.app_context()):
 			import time
-			current_app.logger.info(f"Waiting {str(self.stream_delay)} seconds to stop stream process...")
-			time.sleep(self.stream_delay)
 			if (self.stream_process is not None):
+				current_app.logger.info(f"Waiting {str(self.stream_delay)} seconds to stop stream process...")
+				time.sleep(self.stream_delay)
 				current_app.logger.info("Stopping stream process...")
-				self.stream_process.terminate(force=True)
+				self.stream_process.close(force=True)
+				self.stream_process = None
 
 	def stop(self):
 		if (self.capture_process is not None):
 			current_app.logger.info("Stopping capture process...")
-			self.capture_process.terminate(force=True)
-			self.capture_process.sendintr()
+			self.capture_process.close(force=True)
+			self.capture_process = None
 		if (self.stream_process is not None):
 			thread = threading.Thread(target=self.stop_stream, args=(current_app._get_current_object(),))
 			thread.start()
