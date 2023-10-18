@@ -1,13 +1,14 @@
 import os
 
-from flask import Flask
+from flask import Flask, g
+from .extensions import db, migrate
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'quad.sqlite'),
+        SQLALCHEMY_DATABASE_URI='sqlite:///quad.db',
         FFMPEG_OVER_SSH=False,
     )
 
@@ -31,6 +32,11 @@ def create_app(test_config=None):
             'level': 'WARN' if "LOG_LEVEL" not in app.config else app.config["LOG_LEVEL"],
         }
     })
+    
+    from . import models
+
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     from . import core
     app.register_blueprint(core.bp)

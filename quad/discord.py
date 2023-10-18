@@ -14,7 +14,10 @@ import asyncio
 bp = Blueprint('discord', __name__)
 
 @signal_game_ends.connect
-def send_screenshot(sender, game, **extra):
+def send_screenshot_hook(sender, game, **extra):
+	send_screenshot(game)
+
+def send_screenshot(game):
 	webhook = discord.SyncWebhook.from_url(current_app.config["DISCORD_WEBHOOK_GAMES"])
 	frame = game.get_final_score_frame()
 	if (frame is not None):
@@ -22,7 +25,10 @@ def send_screenshot(sender, game, **extra):
 		file = discord.File(img_string, filename="image.png")
 		embed = discord.Embed()
 		embed.set_image(url="attachment://image.png")
-		webhook.send(game.get_game_identifier(), file=file, embed=embed)
+		message = webhook.send(game.get_game_identifier(), file=file, embed=embed, wait=True)
+		from .extensions import db
+		game.set('discord_message_id', message.id)
+		db.session.commit()
 
 def bot():
 	intents = discord.Intents.default()

@@ -4,7 +4,6 @@ import cv2
 from datetime import datetime, timedelta
 import os
 from flask import current_app
-import requests
 
 class MatcherAbstract:
 	def __init__(self):
@@ -36,7 +35,6 @@ class ChampionMatcher(MatcherAbstract):
 
 	def __init__(self):
 		super().__init__()
-		self._championImagesPath = os.path.join(self._assets_path, "champions/")
 		self._loadChampions()
 
 	def _resetResults(self):
@@ -45,18 +43,16 @@ class ChampionMatcher(MatcherAbstract):
 
 	def _loadChampions(self):
 		self._championTemplates = {}
-		files = os.listdir(self._championImagesPath)
-		for file in files:
-			if (file[0] != "."):
-				self._championTemplates[file.replace(".png", "")] = self._loadTemplate(file)
-
-	def _loadTemplate(self, template):
-		return cv2.imread(self._championImagesPath + template, 0)
+		from .extensions import db
+		from .models import Champion
+		from sqlalchemy import select
+		champions = db.session.scalars(select(Champion))
+		for champion in champions:
+			self._championTemplates[champion.name] = cv2.imread(os.path.join(current_app.root_path, champion.template_path), 0)
 
 	def _evaluate(self, image, champion):
 		result = cv2.matchTemplate(image, self._championTemplates[champion], cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		# print(max_val, champion)
 		if (max_val > self._value):
 			self._value = max_val
 			self._result = champion
@@ -149,11 +145,12 @@ class MenuLoading(MatcherAbstract):
 		return (False, {})
 
 class WarmupEnd(MatcherAbstract):
-
 	def __init__(self):
 		super().__init__()
 		self.champion_matcher = ChampionMatcher()
 		self.ignore_bots = ["ezPotat", "HotButterBiscuit", "NoMeGrites"]
+		from .common import QuakeStats
+		self.stats = QuakeStats()
 
 	def sanitize_player_name(self, name):
 		return "".join([x for x in name if x.isalnum() or x.isspace() or x == '.'])
@@ -173,14 +170,6 @@ class WarmupEnd(MatcherAbstract):
 		champY = 28
 		champX = 1182
 		return self.champion_matcher.identifyChampion(frame[champY:champY+champImageSize, champX:champX+champImageSize])
-
-	def player_exists(self, name):
-		r = requests.get(f'https://quake-stats.bethesda.net/api/v2/Player/Search?term={name}')
-		if (r.status_code == 200):
-			for entity in r.json():
-				if (entity.get('entityName') == name):
-					return True
-		return False
 
 	def save_incorrect_ocr(self, frame):
 		path = os.path.join(current_app.instance_path, 'incorrect_images')
@@ -206,14 +195,14 @@ class WarmupEnd(MatcherAbstract):
 			if (p_name == "SLAVE"):
 				p_name = "SL4VE"
 			o_name = self.ocr.get_text_hsv(frame[92:114, 1040:1238], lower, higher).replace("\n", "")
-			if (not self.player_exists(p_name) or not self.player_exists(o_name)):
+			if (not self.stats.player_exists(p_name) or not self.stats.player_exists(o_name)):
 				self.save_incorrect_ocr(frame)
 			if (o_name not in self.ignore_bots):
 				return (True, {
-					"p_champion": self.getPlayerChampion(frame),
-					"o_champion": self.getOpponentChampion(frame),
-					"p_name": self.sanitize_player_name(p_name),
-					"o_name": self.sanitize_player_name(o_name)
+					"player_champion_id": self.getPlayerChampion(frame),
+					"opponent_champion_id": self.getOpponentChampion(frame),
+					"player_name": self.sanitize_player_name(p_name),
+					"opponent_name": self.sanitize_player_name(o_name)
 					})
 		return (False, {})
 
@@ -221,18 +210,18 @@ class MapLoading(MatcherAbstract):
 
 	def __init__(self):
 		super().__init__()
-		self.mapTemplates = {
-			"Awoken": cv2.imread(os.path.join(self._assets_path, 'maps/awoken.png'),0),
-			"Blood Covenant": cv2.imread(os.path.join(self._assets_path, 'maps/bc.png'),0),
-			"Crucible": cv2.imread(os.path.join(self._assets_path, 'maps/crucible.png'),0),
-			"Corrupted Keep": cv2.imread(os.path.join(self._assets_path, 'maps/ck.png'),0),
-			"Deep Embrace": cv2.imread(os.path.join(self._assets_path, 'maps/deep.png'),0),
-			"Exile": cv2.imread(os.path.join(self._assets_path, 'maps/exile.png'),0),
-			"Insomnia": cv2.imread(os.path.join(self._assets_path, 'maps/insomnia.png'), 0),
-			"Molten Falls": cv2.imread(os.path.join(self._assets_path, 'maps/molten.png'),0),
-			"Ruins of Sarnath": cv2.imread(os.path.join(self._assets_path, 'maps/ruins.png'),0),
-			"Vale of Pnath": cv2.imread(os.path.join(self._assets_path, "maps/vale.png"), 0)
-		}
+		self._loadTemplates()
+
+
+	def _loadTemplates(self):
+		from .extensions import db
+		from .models import Map
+		from sqlalchemy import select
+		maps = db.session.scalars(select(Map))
+		self.mapTemplates = {}
+		for map in maps:
+			self.mapTemplates[map.code] = cv2.imread(os.path.join(current_app.root_path, map.template_path), 0)
+
 
 	def match(self, frame):
 		for map, template in self.mapTemplates.items():			
@@ -243,7 +232,7 @@ class MapLoading(MatcherAbstract):
 				result = cv2.matchTemplate(cv2.cvtColor(frame[75:110, 170:800], cv2.COLOR_BGR2GRAY), template[75:110, 170:800], cv2.TM_CCOEFF_NORMED)
 				min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 				if (max_val > 0.95):
-					return (True, {'map': map})
+					return (True, {'map_id': map})
 		return (False, {})
 
 class Ocr:

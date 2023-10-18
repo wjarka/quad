@@ -26,7 +26,7 @@ def run():
 def stop():
 	r = zmq.Client()
 	r.stop_service('core')
-		
+
 class Core:
 
 	def __init__(self):
@@ -70,7 +70,6 @@ class Core:
 			self.frame_processor.process(self.ndi_connector.read())
 			self.process_message(self.zmq.get_message())
 		self.zmq.shutdown()
-
 
 class NdiConnector:
 
@@ -154,7 +153,6 @@ class FrameProcessor:
 		self.game = Game()
 
 	def process(self, frame):
-
 		if (frame is None):
 			return None
 		for scenario in self.flow[self.current_status]:
@@ -190,7 +188,7 @@ class FrameProcessor:
 			self.STATUS_GAME_FOUND: [{
 				'matchers': [m.WarmupEnd()], 
 				'status': self.STATUS_RECORDING, 
-				'actions': [self.set_game_start_time],
+				'actions': [self.game_starts],
 				'signals': [signal_game_starts]
 			},{
 				'matchers': [
@@ -234,9 +232,8 @@ class FrameProcessor:
 	def set_last_frame_alive(self, frame, meta):
 		self.game.set('last_frame_alive', frame)
 
-	def set_game_start_time(self, frame, meta):
-		self.game.set_game_start_time()
+	def game_starts(self, frame, meta):
+		self.game.game_starts()
 
 	def reset_game(self, frame, meta):
 		self.game = Game(meta)
-		print(self.game.data)

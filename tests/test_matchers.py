@@ -23,7 +23,7 @@ import quad.matchers as m
 	('MenuLoading', 'tests/assets/loading-menu.png', True),
 	('MapLoading', 'tests/assets/loading-map.png', True)
 ])
-def test_matcher_match(app, matchers, matcher, image_path, expected_result):
+def test_matcher_match(app, requests_get_404, matchers, matcher, image_path, expected_result):
 	# assert os.path.isfile(image_path) == True
 	with app.app_context():
 		result, data = matchers[matcher].match(cv2.imread(image_path))
@@ -53,7 +53,18 @@ def test_champion_matcher(app, champion_matcher, image_path, expected_result):
 		result = champion_matcher.identifyChampion(cv2.imread(image_path))
 	assert result == expected_result
 
-@pytest.mark.parametrize('matcher,image_path,expected_data', [])
+@pytest.mark.parametrize('matcher,image_path,expected_data', [
+	('MapLoading', 'quad/assets/maps/awoken.png', {"map_id": "awoken"}),
+	('MapLoading', 'quad/assets/maps/bc.png', {"map_id": "bc"}),
+	('MapLoading', 'quad/assets/maps/ck.png', {"map_id": "ck"}),
+	('MapLoading', 'quad/assets/maps/crucible.png', {"map_id": "crucible"}),
+	('MapLoading', 'quad/assets/maps/deep.png', {"map_id": "deep"}),
+	('MapLoading', 'quad/assets/maps/molten.png', {"map_id": "molten"}),
+	('MapLoading', 'quad/assets/maps/ruins.png', {"map_id": "ruins"}),
+	('MapLoading', 'quad/assets/maps/vale.png', {"map_id": "vale"}),
+	('MapLoading', 'quad/assets/maps/insomnia.png', {"map_id": "insomnia"}),
+	('MapLoading', 'quad/assets/maps/exile.png', {"map_id": "exile"}),
+])
 def test_matcher_data(app, matchers, matcher, image_path, expected_data):
 	with app.app_context():
 		result, data = matchers[matcher].match(cv2.imread(image_path))
@@ -65,7 +76,10 @@ def test_matcher_data(app, matchers, matcher, image_path, expected_data):
 	('tests/assets/ocr_sl4ve_athena_airwalker_strogg.png', 'AirWalker')
 	# ('tests/assets/ocr_.png', ''),
 ])
-def test_warmupend_ocr(app, matchers, image_path, expected_name):
+def test_warmupend_ocr(app, requests_get_404, matchers, image_path, expected_name):
 	with app.app_context():
 		result, data = matchers['WarmupEnd'].match(cv2.imread(image_path))
-	assert data['o_name'] == expected_name
+	assert data['opponent_name'] == expected_name
+
+# def test_player_exists(app, db, matchers):
+

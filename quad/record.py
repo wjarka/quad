@@ -31,7 +31,7 @@ class Recorder:
 
 
 	def on_game_starts(self, sender, frame, game, **extra):
-		self.start(game.get_recording_path())
+		self.start(game.get('recording_path'))
 
 	def on_game_ends(self, sender, frame, game, **extra):
 		self.save_last_score(game)
