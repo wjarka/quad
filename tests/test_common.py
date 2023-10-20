@@ -94,5 +94,42 @@ def test_game_game_starts(db, session, game):
 	assert game.model.opponent_name == retrieved_game.opponent_name
 	assert game.model.opponent_champion_id == retrieved_game.opponent_champion_id
 	assert game.model.map_id == retrieved_game.map_id
-	assert retrieved_game.recording_path == "/tmp/Games/1970/01/1970-01-01-00-00-00-Player One-(Ranger)-vs-Player Two-(Nyx)-Awoken.mp4"
-	assert retrieved_game.screenshot_path == "/tmp/Games/1970/01/1970-01-01-00-00-00-Player One-(Ranger)-vs-Player Two-(Nyx)-Awoken.png"
+	assert retrieved_game.recording_path == "/tmp/Games/1970/01/1970-01-01-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4"
+	assert retrieved_game.screenshot_path == "/tmp/Games/1970/01/1970-01-01-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.png"
+
+def test_game_set_paths(db, session, game):
+	import datetime
+	game.game_starts()
+	game.set('timestamp', datetime.datetime(1970,1,1))
+	game.set_paths()
+	assert game.get('recording_path') == "/tmp/Games/1970/01/1970-01-01-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4"
+	assert game.get('screenshot_path') == "/tmp/Games/1970/01/1970-01-01-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.png"
+	game.set('timestamp', datetime.datetime(1985,12,8))
+	game.set_paths()
+	assert game.get('recording_path') == "/tmp/Games/1985/12/1985-12-08-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4"
+	assert game.get('screenshot_path') == "/tmp/Games/1985/12/1985-12-08-00-00-00-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.png"
+
+
+def test_game_get_final_score_frame(frame_scoreboard, frame_alive):
+	import cv2, numpy as np
+	from quad.common import Game
+
+	game = Game()
+	assert game.get_final_score_frame() == None
+	game.set('scoreboard', frame_scoreboard)
+	assert np.array_equal(game.get_final_score_frame(), frame_scoreboard)
+	game.set('scoreboard', None)
+	assert game.get_final_score_frame() == None
+	game.set('last_frame_alive', frame_alive)
+	assert np.array_equal(game.get_final_score_frame(), frame_alive)
+	game.set('last_frame_alive', None)
+	assert game.get_final_score_frame() == None
+	game.set('scoreboard', frame_scoreboard)
+	game.set('last_frame_alive', frame_alive)
+	assert np.array_equal(game.get_final_score_frame(), frame_scoreboard)
+
+	
+
+
+
+

@@ -91,16 +91,25 @@ def ndi():
 	return NdiConnector("NDI")	
 
 @pytest.fixture
-def game(session):
+def game(session, frame_scoreboard):
 	from quad.common import Game
 	import quad.models as models
-	import cv2
 	game = Game(data = {
-		'player_name': "Player One", 
-		'opponent_name': "Player Two", 
-		'player_champion_id': "Ranger",
-		'opponent_champion_id': "Nyx", 
-		'map_id': "awoken",
-		"scoreboard": cv2.imread("tests/assets/scoreboard.png")})
+		'player_name': "SL4VE", 
+		'opponent_name': "b00m MaaV", 
+		'player_champion_id': "Slash",
+		'opponent_champion_id': "Galena", 
+		'map_id': "molten",
+		"scoreboard": frame_scoreboard})
 	return game
+
+@pytest.fixture
+def frame_scoreboard():
+	import cv2
+	return cv2.imread("tests/assets/scoreboard.png")
+
+@pytest.fixture
+def frame_alive():
+	import cv2
+	return cv2.imread('tests/assets/warmupend.png')
 		

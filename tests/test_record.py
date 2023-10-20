@@ -22,3 +22,20 @@ def test_recorder_start(mocker, ndi):
 def test_recorder_default_bitrate(mocker, ndi):
 	r = Recorder(ndi)
 	assert r.bitrate == "6M"
+
+def test_save_last_score(mocker, game, ndi, session):
+	import datetime
+	game.game_starts()
+	game.set('timestamp', datetime.datetime(1970,1,1))
+	game.set_paths()
+	mkdir = mocker.patch('pexpect.run')
+	write_image = mocker.patch('cv2.imwrite')
+	r = Recorder(ndi)
+	r.save_last_score(game)
+	mkdir.assert_called_once_with("mkdir -p /tmp/Games/1970/01")
+	write_image.assert_called_once()
+
+	game.set('scoreboard', None)
+	write_image.reset_mock()
+	r.save_last_score(game)
+	write_image.assert_not_called()

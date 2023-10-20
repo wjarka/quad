@@ -61,13 +61,17 @@ class Game:
 		})
 		return game
 
+	def set_paths(self):
+		from .extensions import db
+		self.model.recording_path = current_app.config["PATH_RECORDING"].format(**self._path_dictionary())
+		self.model.screenshot_path = current_app.config["PATH_SCREENSHOT"].format(**self._path_dictionary())
+		db.session.commit()
+
 	def game_starts(self):
 		from .extensions import db
 		db.session.add(self.model)
 		db.session.flush()
-		self.model.recording_path = current_app.config["PATH_RECORDING"].format(**self._path_dictionary())
-		self.model.screenshot_path = current_app.config["PATH_SCREENSHOT"].format(**self._path_dictionary())
-		db.session.commit()
+		self.set_paths()
 
 	def _path_dictionary(self):
 		return {

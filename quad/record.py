@@ -21,7 +21,7 @@ class Recorder:
 
 
 	def save_last_score(self, game):
-		path = game.get_screenshot_path()
+		path = game.get('screenshot_path')
 		dir_to_create = os.path.dirname(path)
 		pexpect.run(f"mkdir -p {dir_to_create}")
 		frame = game.get_final_score_frame()
