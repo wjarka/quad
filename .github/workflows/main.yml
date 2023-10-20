@@ -30,7 +30,7 @@ jobs:
           source /srv/quad/.venv/bin/activate
           systemctl stop quad.service || :
           pip freeze --exclude quad | xargs pip uninstall -y
-          pip uninstall quad
+          pip uninstall -y quad
           pip install --upgrade --force-reinstall dist/$BUILD_FILE
           mv dist/$BUILD_FILE /var/opt/quad/backups/wheels/
           systemctl start quad.service
