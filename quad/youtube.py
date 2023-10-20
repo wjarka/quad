@@ -179,6 +179,9 @@ class YouTubeUploader:
 		options = UploadOptions.from_game(game)
 		try:
 			vid = self.initialize_upload(options)
+			game.youtube_id = vid
+			from .extensions import db
+			db.session.commit()
 			return f'https://youtube.com/watch?v={vid}'
 		except HttpError as e:
 			logging.error("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))

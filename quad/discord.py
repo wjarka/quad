@@ -47,7 +47,7 @@ def bot():
 		yt_link = yt.upload(game)
 		thread = message.thread
 		if (thread is None):
-			thread_name = game.get('p_name') + " vs " + game.get('o_name') + " (" + game.get('map') + ")"
+			thread_name = game.get('player_name') + " vs " + game.get('opponent_name') + " (" + game.get('map').name + ")"
 			thread = await message.create_thread(name=thread_name)
 		await thread.send(content = yt_link)
 	
