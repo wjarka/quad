@@ -1,6 +1,6 @@
 [project]
 name = "quad"
-version = "1.2.0"
+version = "1.2.1"
 description = "Quake Ultimate Analysis and Development. A system to record, analyze, organize Quake Champions recordings and improve in Quake in general"
 dependencies = [
 	"cffi",
@@ -22,6 +22,9 @@ dependencies = [
 [build-system]
 requires = ["flit_core<4"]
 build-backend = "flit_core.buildapi"
+
+[tool.flit.external-data]
+directory="data"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
