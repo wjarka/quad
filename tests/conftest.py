@@ -104,6 +104,14 @@ def game(session, frame_scoreboard):
 	return game
 
 @pytest.fixture
+def game_complete(session, game):
+	import datetime
+	game.game_starts()
+	game.set('timestamp', datetime.datetime(1970,1,1))
+	game.set_paths()
+	return game
+
+@pytest.fixture
 def frame_scoreboard():
 	import cv2
 	return cv2.imread("tests/assets/scoreboard.png")

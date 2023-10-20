@@ -197,7 +197,7 @@ class UploadOptions:
 	def from_game(cls, game:Game):
 		o = UploadOptions()
 		o.file = game.get('recording_path')
-		o.title = game.get('p_name') + " (" + game.get('p_champion') + ") vs " + game.get('o_name') + " (" + game.get('o_champion') + ") " + game.get('map') + " (" + game.get('time') + ")"
+		o.title = game.get('player_name') + " (" + game.get('player_champion').name + ") vs " + game.get('opponent_name') + " (" + game.get('opponent_champion').name + ") " + game.get('map').name + " (" + game.get('timestamp').strftime("%Y-%m-%d-%H-%M-%S") + ")"
 		o.description = "Recorded with NDI QC Recorder by SL4VE"
-		o.keywords = ','.join([game.get('p_champion'), game.get('o_champion'), game.get('map')])
+		o.keywords = ','.join([game.get('player_champion').name, game.get('opponent_champion').name, game.get('map').name])
 		return o

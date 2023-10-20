@@ -23,11 +23,9 @@ def test_recorder_default_bitrate(mocker, ndi):
 	r = Recorder(ndi)
 	assert r.bitrate == "6M"
 
-def test_save_last_score(mocker, game, ndi, session):
+def test_save_last_score(mocker, game_complete, ndi, session):
 	import datetime
-	game.game_starts()
-	game.set('timestamp', datetime.datetime(1970,1,1))
-	game.set_paths()
+	game = game_complete
 	mkdir = mocker.patch('pexpect.run')
 	write_image = mocker.patch('cv2.imwrite')
 	r = Recorder(ndi)
