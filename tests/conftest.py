@@ -11,8 +11,9 @@ def app():
 		'TESTING': True,
 		'SQLALCHEMY_DATABASE_URI': 'sqlite:///quad-test.db',
 		'DISCORD_WEBHOOK_GAMES': 'discord-webhook-dummy-value',
-		'PATH_RECORDING': "/tmp/Games/{year}/{month}/{game_id}.mp4",
-		'PATH_SCREENSHOT': "/tmp/Games/{year}/{month}/{game_id}.png",
+		'PATH_STORAGE': "/tmp/Games",
+		'PATH_RECORDING': "{storage}/{year}/{month}/{game_id}.mp4",
+		'PATH_SCREENSHOT': "{storage}/{year}/{month}/{game_id}.png",
 	})
 	with app.app_context():
 		yield app
@@ -91,24 +92,46 @@ def ndi():
 	return NdiConnector("NDI")	
 
 @pytest.fixture
-def game(session, frame_scoreboard):
-	from quad.common import Game
-	import quad.models as models
+def new_game():
+	from quad.games import Game
+	return Game()
+
+@pytest.fixture
+def game_ready_to_record():
+	from quad.games import Game
+	import datetime
 	game = Game(data = {
 		'player_name': "SL4VE", 
 		'opponent_name': "b00m MaaV", 
 		'player_champion_id': "Slash",
 		'opponent_champion_id': "Galena", 
 		'map_id': "molten",
-		"scoreboard": frame_scoreboard})
+	})
 	return game
 
 @pytest.fixture
-def game_complete(session, game):
+def game_after_recording_started(session, game_ready_to_record, frame_scoreboard):
 	import datetime
-	game.game_starts()
-	game.set('timestamp', datetime.datetime(1970,1,1))
-	game.set_paths()
+	game_ready_to_record.update({
+		'timestamp': datetime.datetime(1971,2, 3, 10, 45, 15),
+		"recording_path": "/tmp/Games/1971/02/1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4",
+		"scoreboard": frame_scoreboard,
+	})
+	return game_ready_to_record
+
+
+@pytest.fixture
+def game(session, game_after_recording_started, frame_scoreboard):
+	from quad.games import Game
+	game_after_recording_started.update(
+	{
+		"screenshot_path": "/tmp/Games/1971/02/1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.png"
+	})
+	return game_after_recording_started
+
+@pytest.fixture
+def game_saved(session, game):
+	game.save_model()
 	return game
 
 @pytest.fixture
@@ -120,4 +143,14 @@ def frame_scoreboard():
 def frame_alive():
 	import cv2
 	return cv2.imread('tests/assets/warmupend.png')
+
+@pytest.fixture
+def recorder(ndi):
+	from quad.record import Recorder
+	class RecorderStub(Recorder):
+		def set_timestamp(self, game):
+			from datetime import datetime
+			game.set('timestamp', datetime(1971, 2, 3, 10, 45, 15))
+	
+	return RecorderStub(ndi)
 		

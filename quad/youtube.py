@@ -3,7 +3,7 @@ import httplib2
 import os
 import random
 import time
-from .common import Game
+from .games import Game
 import logging
 import json
 from flask import current_app
@@ -200,7 +200,7 @@ class UploadOptions:
 	def from_game(cls, game:Game):
 		o = UploadOptions()
 		o.file = game.get('recording_path')
-		o.title = game.get('player_name') + " (" + game.get('player_champion').name + ") vs " + game.get('opponent_name') + " (" + game.get('opponent_champion').name + ") " + game.get('map').name + " (" + game.get('timestamp').strftime("%Y-%m-%d-%H-%M-%S") + ")"
+		o.title = game.get('player_name') + " (" + game.get_player_champion_name() + ") vs " + game.get('opponent_name') + " (" + game.get_opponent_champion_name() + ") " + game.get_map_name() + " (" + game.get('timestamp').strftime("%Y-%m-%d-%H-%M-%S") + ")"
 		o.description = "Recorded with NDI QC Recorder by SL4VE"
-		o.keywords = ','.join([game.get('player_champion').name, game.get('opponent_champion').name, game.get('map').name])
+		o.keywords = ','.join([game.get_player_champion_name(), game.get_opponent_champion_name(), game.get_map_name()])
 		return o

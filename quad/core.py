@@ -2,7 +2,8 @@ from flask import Blueprint, current_app
 import time
 from .record import Recorder
 from .stream import TwitchStream
-from .common import Pacer, Game
+from .common import Pacer
+from .games import Game
 from .ndi import finder
 from .ndi import receiver as r
 from . import matchers as m
@@ -233,7 +234,7 @@ class FrameProcessor:
 		self.game.set('last_frame_alive', frame)
 
 	def game_starts(self, frame, meta):
-		self.game.game_starts()
+		self.game.save_model()
 
 	def reset_game(self, frame, meta):
 		self.game = Game(meta)

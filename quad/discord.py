@@ -2,7 +2,7 @@ from flask import Blueprint, current_app
 import discord
 from discord.ext import commands
 from blinker import signal
-from .common import Game
+from .games import Game
 from .youtube import YouTubeUploader
 from .core import signal_game_ends
 from threading import Thread

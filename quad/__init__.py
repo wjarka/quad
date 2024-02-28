@@ -47,4 +47,7 @@ def create_app(test_config=None):
     from . import discord
     app.register_blueprint(discord.bp)
 
+    from . import games
+    app.register_blueprint(games.bp)
+
     return app

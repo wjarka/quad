@@ -8,8 +8,8 @@ def test_send_screenshot(app, db, session, mocker, game):
 	send = webhook.send
 	send.return_value = message
 	mocker.patch('discord.SyncWebhook.from_url').return_value = webhook
-	
-	game.game_starts()
+	# game = game_saved
+	game.save_model()
 	from quad.discord import send_screenshot
 	send_screenshot(game)
 	send.assert_called_once()
