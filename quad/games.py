@@ -3,19 +3,19 @@ from flask import current_app, Blueprint
 
 bp = Blueprint('games', __name__)
 
-@bp.cli.command('import')
-def game_import():
-	gi = GameImporter()
-	gi.import_games()
-	print(gi.find_recordings())
+# @bp.cli.command('import')
+# def game_import():
+# 	gi = GameImporter()
+# 	gi.import_games()
+# 	print(gi.find_recordings())
 
-class GameImporter():
-	def import_games(self):
-		pass
+# class GameImporter():
+# 	def import_games(self):
+# 		pass
 
-	def find_recordings(self):
-		import glob
-		return glob.glob('/Volumes/Quake/Games/**/*.mp4', recursive=True)
+# 	def find_recordings(self):
+# 		import glob
+# 		return glob.glob('/Volumes/Quake/Games/**/*.mp4', recursive=True)
     
 
 class Game:

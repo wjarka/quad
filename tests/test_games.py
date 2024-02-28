@@ -90,19 +90,19 @@ def test_game_get_final_score_frame(frame_scoreboard, frame_alive):
 	assert np.array_equal(game.get_final_score_frame(), frame_scoreboard)
 
 
-def test_game_import_command(runner):
-	result = runner.invoke(args=["games", "import"])
-	assert "Error: No such command 'games'" not in result.output
-	assert result.exception is None
+# def test_game_import_command(runner):
+# 	result = runner.invoke(args=["games", "import"])
+# 	assert "Error: No such command 'games'" not in result.output
+# 	assert result.exception is None
 
-def test_game_importer_class_exists():
-	from quad.games import GameImporter
-	g = GameImporter()
-	assert 1
+# def test_game_importer_class_exists():
+# 	from quad.games import GameImporter
+# 	g = GameImporter()
+# 	assert 1
 
-def test_game_importer_find_recordings():
-	from quad.games import GameImporter
-	g = GameImporter()
-	result = g.find_recordings()
-	assert result == []
+# def test_game_importer_find_recordings():
+# 	from quad.games import GameImporter
+# 	g = GameImporter()
+# 	result = g.find_recordings()
+# 	assert result == []
 	
