@@ -42,12 +42,13 @@ def bot():
 		channel = await bot.fetch_channel(payload.channel_id)
 		message = await channel.fetch_message(payload.message_id)
 
-		game = Game.from_id(message.content)
+		# game = Game.from_id(message.content)
+		game = Game.from_discord_id(payload.message_id)
 		yt = YouTubeUploader()
 		yt_link = yt.upload(game)
 		thread = message.thread
 		if (thread is None):
-			thread_name = game.get('player_name') + " vs " + game.get('opponent_name') + " (" + game.get('map').name + ")"
+			thread_name = game.get('player_name') + " vs " + game.get('opponent_name') + " (" + game.get_map_name() + ")"
 			thread = await message.create_thread(name=thread_name)
 		await thread.send(content = yt_link)
 	

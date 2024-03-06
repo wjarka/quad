@@ -31,6 +31,16 @@ class Game:
 		self.update(data)
 		
 	@classmethod
+	def from_discord_id(cls, discord_id):
+		from .extensions import db
+		from sqlalchemy import select
+		from .models import Game as GameModel
+		game_model = db.session.scalar(select(GameModel).where(GameModel.discord_message_id == discord_id))
+		print(discord_id)
+		print(game_model)
+		return Game(model=game_model)
+
+	@classmethod
 	def from_id(cls, id):
 		meta = id[20:]
 		p_name, p_champ, vs, o_name, o_champ, map = meta.split('-')
