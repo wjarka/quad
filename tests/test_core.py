@@ -1,4 +1,6 @@
 import pytest
+from numpy.ma.testutils import assert_not_equal
+
 from quad.core import FrameProcessor
 from blinker import signal
 
@@ -39,4 +41,39 @@ def test_frame_processor_status_transitions(app, fp, db, session, requests_get_4
 		fp.process(frame)
 	assert fp.current_status == end_status
 
+def test_database_consistency(app, fp, db, session):
+	import cv2
+	fp.change_status(STATUS_WAITING_FOR_GAME)
+	with signal('game-found').muted():
+		frame = cv2.imread('tests/assets/loading-map.png')
+		fp.process(frame)
+	assert_not_equal(fp.game.model, None)
+	assert fp.game.get_map_name() == 'Exile'
 
+	with signal('game-starts').muted():
+		frame = cv2.imread('tests/assets/warmupend.png')
+		fp.process(frame)
+	from quad.extensions import db
+	from sqlalchemy import inspect
+	state = inspect(fp.game.model)
+	assert state.persistent == True
+	session.refresh(fp.game.model)
+	assert_not_equal(fp.game.model.id, None)
+	previous_id = fp.game.model.id
+
+	with signal('game-ends').muted():
+		frame = cv2.imread('tests/assets/scoreboard.png')
+		fp.process(frame)
+
+	with signal('game-found').muted():
+		frame = cv2.imread('tests/assets/loading-map-awoken.png')
+		fp.process(frame)
+
+	from sqlalchemy	import select
+	from quad.models import Game as GameModel
+	game_model = db.session.scalar(select(GameModel).where(GameModel.id == previous_id))
+	assert_not_equal(game_model, None)
+	assert_not_equal(fp.game.model.id, previous_id)
+	assert_not_equal(fp.game.model.id, game_model.id)
+	assert fp.game.model.map_id == 'awoken'
+	assert game_model.map_id == 'exile'

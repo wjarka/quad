@@ -17,3 +17,5 @@ build/
 
 *.sublime*
 sftp-config.json
+
+.idea

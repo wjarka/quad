@@ -170,7 +170,6 @@ class FrameProcessor:
 		for matcher in matchers:
 			found, meta = matcher.match(frame)
 			if (found):
-				self.game.update(meta)
 				for action in actions:
 					action(frame, meta)
 				for signal in signals:
@@ -183,13 +182,13 @@ class FrameProcessor:
 			self.STATUS_WAITING_FOR_GAME: [{
 				'matchers': [m.MapLoading()], 
 				'status': self.STATUS_GAME_FOUND,
-				'actions': [self.reset_game],
+				'actions': [self.reset_game, self.update_game],
 				'signals': [signal_game_found]
 			}],
 			self.STATUS_GAME_FOUND: [{
 				'matchers': [m.WarmupEnd()], 
 				'status': self.STATUS_RECORDING, 
-				'actions': [self.game_starts],
+				'actions': [self.update_game, self.game_starts],
 				'signals': [signal_game_starts]
 			},{
 				'matchers': [
@@ -197,13 +196,14 @@ class FrameProcessor:
 					m.MainMenu(),
 					m.Desktop5Seconds()
 				], 
-				'status': self.STATUS_WAITING_FOR_GAME, 
+				'status': self.STATUS_WAITING_FOR_GAME,
+				'actions': [self.update_game],
 				'signals': [signal_game_cancelled]
 			}],
 			self.STATUS_RECORDING: [{
 				'matchers': [m.DuelEndScoreboard()], 
 				'status': self.STATUS_WAITING_FOR_GAME,
-				'actions': [self.set_scoreboard],
+				'actions': [self.update_game, self.set_scoreboard],
 				'signals': [signal_game_ends]
 			},{
 				'matchers': [
@@ -211,11 +211,12 @@ class FrameProcessor:
 					m.MainMenu(),
 					m.Desktop5Seconds(),
 				], 
-				'status': self.STATUS_WAITING_FOR_GAME, 
+				'status': self.STATUS_WAITING_FOR_GAME,
+				'actions': [self.update_game],
 				'signals': [signal_game_ends],
 			}, {
 				'matchers': [m.IsAlive()],
-				'actions': [self.set_last_frame_alive]
+				'actions': [self.update_game, self.set_last_frame_alive]
 			}],
 		}
 		return flow
@@ -227,6 +228,8 @@ class FrameProcessor:
 				current_app.logger.info(trigger.__class__.__name__ + " triggered.")
 			current_app.logger.info("Current Status: " + self.STATUS_LABELS[self.current_status])
 
+	def update_game(self, frame, meta):
+		self.game.update(meta)
 	def set_scoreboard(self, frame, meta):
 		self.game.set('scoreboard', frame)
 
@@ -237,4 +240,4 @@ class FrameProcessor:
 		self.game.save_model()
 
 	def reset_game(self, frame, meta):
-		self.game = Game(meta)
+		self.game = Game(data = meta, model = None)
