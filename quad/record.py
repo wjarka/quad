@@ -176,4 +176,3 @@ class ObsRecorder(Recorder):
         destination_path = path_generator.get_recording_path(self.current_game)
         pexpect.run(f"mv \"{source_path}\" \"{destination_path}\"")
         self.current_game = None
-        self.obs.disconnect()
