@@ -13,11 +13,7 @@ class RecorderManager:
         self.current_recorder = None
         self.available_recorders = []
         for recorder in current_app.config["RECORDERS"].split(','):
-            print(f"Adding recorder {recorder}")
             self.available_recorders.append(RecorderFactory.get(recorder))
-        print(self.available_recorders)
-        for recorder in self.available_recorders:
-            print(recorder)
         from .core import signal_game_starts, signal_game_ends
         signal_game_starts.connect(self.on_game_starts)
         signal_game_ends.connect(self.on_game_ends)
@@ -37,7 +33,6 @@ class RecorderManager:
         if self.current_recorder is not None:
             return self.current_recorder
         for recorder in self.available_recorders:
-            print(f"Checking {recorder}")
             if recorder.can_record():
                 return recorder
 
