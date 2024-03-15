@@ -38,6 +38,27 @@ def test_game_get():
 	assert game.get('player_name') == 'name_in_data'
 	assert game.get('test') == 'test_value'
 
+def test_gamepathgenerator_get_recording_path(ndi, game_ready_to_record, path_generator):
+	from datetime import datetime
+	game_ready_to_record.set('timestamp', datetime(1971, 2, 3, 10, 45, 15))
+	assert path_generator.get_recording_path(game_ready_to_record) == "/tmp/Games/1971/02/1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4"
+
+def test_gamepathgenerator_get_screenshot_path(ndi, game_ready_to_record, path_generator):
+	from datetime import datetime
+	game_ready_to_record.set('timestamp', datetime(1971, 2, 3, 10, 45, 15))
+	assert path_generator.get_screenshot_path(game_ready_to_record) == "/tmp/Games/1971/02/1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.png"
+
+def test_gamepathgenerator__path_dictionary(app, path_generator, game_ready_to_record):
+	from datetime import datetime
+	game_ready_to_record.set('timestamp', datetime(1971, 2, 3, 10, 45, 15))
+	assert path_generator._path_dictionary(game_ready_to_record) == {
+		'storage': app.config["PATH_STORAGE"],
+		'year': '1971',
+		'month': '02',
+		'game_id': '1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls'
+	}
+
+
 def test_game_save_model(db, session, game):
 	from sqlalchemy import select
 	import quad.models as models

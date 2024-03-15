@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app
 import time
-from .record import Recorder
+from .record import RecorderManager
 from .stream import TwitchStream
 from .common import Pacer
 from .games import Game
@@ -32,7 +32,9 @@ class Core:
 
 	def __init__(self):
 		self.ndi_connector = NdiConnector(current_app.config["NDI_STREAM"])
-		self.recorder = Recorder(self.ndi_connector)
+		from .record import ObsRecorder
+		from .games import GamePathGenerator
+		self.recorder_manager = RecorderManager()
 		self.stream = TwitchStream()
 		self.zmq = zmq.Server(['core', 'stream'])
 		self.pacer = Pacer()
@@ -46,7 +48,7 @@ class Core:
 
 	def shutdown(self):
 		current_app.logger.info("Starting app shutdown...")
-		self.recorder.stop()
+		self.recorder_manager.stop()
 		self.stream.stop()
 		self.stop = True
 
@@ -237,6 +239,8 @@ class FrameProcessor:
 		self.game.set('last_frame_alive', frame)
 
 	def game_starts(self, frame, meta):
+		from datetime import datetime
+		self.game.set('timestamp', datetime.now())
 		self.game.save_model()
 
 	def reset_game(self, frame, meta):

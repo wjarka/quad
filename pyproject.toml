@@ -16,7 +16,8 @@ dependencies = [
 	"Flask-Migrate",
 	"coverage",
 	"pytest",
-	"pytest-mock"
+	"pytest-mock",
+	"obsws-python"
 ]
 
 [build-system]

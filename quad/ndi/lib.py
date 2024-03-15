@@ -150,6 +150,7 @@ basedir = os.path.dirname(__file__)
 uname = platform.uname()
 system = uname[0].lower()
 machine = uname[4]
+
 if system == 'linux':
     lib = ffi.dlopen(os.path.join(basedir, "bin", f"libndi.{system}.{machine}.so"))
 elif (system == 'darwin'):
