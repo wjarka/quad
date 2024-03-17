@@ -1,0 +1,11 @@
+[Unit]
+Description=Quad Recorder
+[Service]
+Type=simple
+WorkingDirectory=/srv/quad
+ExecStart=/bin/bash -c 'source /srv/quad/.venv/bin/activate && flask --app quad core run'
+ExecStop=/bin/bash -c 'source /srv/quad/.venv/bin/activate && flask --app quad core stop'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
