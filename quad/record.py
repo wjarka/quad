@@ -186,5 +186,7 @@ class ObsRecorder(Recorder):
         from .games import GamePathGenerator
         path_generator = GamePathGenerator()
         destination_path = path_generator.get_recording_path(self.current_game)
+        self.current_game.set('recording_path', destination_path)
         pexpect.run(f"mv \"{source_path}\" \"{destination_path}\"")
+        self.current_game.save_model()
         self.current_game = None
