@@ -34,7 +34,7 @@ jobs:
           pip freeze --exclude quad | xargs pip uninstall -y || :
           pip uninstall -y quad
           pip install --upgrade --force-reinstall dist/$BUILD_FILE
-          ln -s /srv/quad/quad.service /etc/systemd/system/quad.service
+          ln -s /srv/quad/.venv/quad.service /etc/systemd/system/quad.service
           systemctl enable quad.service
           flask --app quad db upgrade
           mkdir -p /var/opt/quad/backups/wheels/
