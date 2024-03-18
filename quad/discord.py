@@ -36,23 +36,28 @@ def bot():
 	bot = commands.Bot(command_presfix='$', intents=intents)
 
 	async def reaction_youtube(sender, payload, **extra):
-		if ("DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS" in current_app.config and payload.user_id not in current_app.config["DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS"]):
+		if "DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS" in current_app.config and payload.user_id not in current_app.config["DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS"]:
 			return
 
 		channel = await bot.fetch_channel(payload.channel_id)
 		message = await channel.fetch_message(payload.message_id)
 
-		# game = Game.from_id(message.content)
 		game = Game.from_discord_id(payload.message_id)
 		yt = YouTubeUploader()
 		yt_link = yt.upload(game)
 		thread = message.thread
-		if (thread is None):
+		if thread is None:
 			thread_name = game.get('player_name') + " vs " + game.get('opponent_name') + " (" + game.get_map_name() + ")"
 			thread = await message.create_thread(name=thread_name)
 		await thread.send(content = yt_link)
 	
 	signal('discord-reaction-youtube').connect(reaction_youtube)
+
+	@bot.event
+	async def on_message(message):
+		if message.channel.id == current_app.config["DISCORD_GAMES_CHANNEL_ID"] and message.webhook_id is not None:
+			for emoji_id in current_app.config["DISCORD_ACTION_EMOJI_IDS"]:
+				await message.add_reaction(bot.get_emoji(emoji_id))
 
 	@bot.event
 	async def on_raw_reaction_add(payload):
