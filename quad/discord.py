@@ -49,7 +49,10 @@ def bot():
             current_app.logger.error("Cannot start YT upload: Game not found or no recording available")
             return
         yt = YouTubeUploader()
-        yt_link = yt.upload(game)
+        vid = yt.upload(game)
+        game.set('youtube_id', vid)
+        yt_link = f'https://youtube.com/watch?v={vid}'
+        game.save_model()
         thread = message.thread
         if thread is None:
             thread_name = game.get('player_name') + " vs " + game.get(

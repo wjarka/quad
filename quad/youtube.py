@@ -182,7 +182,7 @@ class YouTubeUploader:
 			game.youtube_id = vid
 			from .extensions import db
 			db.session.commit()
-			return f'https://youtube.com/watch?v={vid}'
+			return vid
 		except HttpError as e:
 			logging.error("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
 
