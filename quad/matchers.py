@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import os
 from flask import current_app
 
+
 class MatcherAbstract:
 	def __init__(self):
 		self.ocr = Ocr()
@@ -26,22 +27,22 @@ class IsAlive(MatcherAbstract):
 		area = cv2.inRange(Lchannel, 240, 255)
 		result = cv2.matchTemplate(area, self.template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		if (max_val == 0):
-			return (False, {})
-		return (True, {})
+		if max_val == 0:
+			return False, {}
+		return True, {}
 
 
 class ChampionMatcher(MatcherAbstract):
 
 	def __init__(self):
 		super().__init__()
-		self._loadChampions()
+		self._load_champions()
 
-	def _resetResults(self):
+	def _reset_results(self):
 		self._result = None
 		self._value = 0
 
-	def _loadChampions(self):
+	def _load_champions(self):
 		self._championTemplates = {}
 		from .extensions import db
 		from .models import Champion
@@ -53,26 +54,28 @@ class ChampionMatcher(MatcherAbstract):
 	def _evaluate(self, image, champion):
 		result = cv2.matchTemplate(image, self._championTemplates[champion], cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		if (max_val > self._value):
+		if max_val > self._value:
 			self._value = max_val
 			self._result = champion
 
-	def identifyChampion(self, image):
-		self._resetResults()
-		if (len(image.shape) == 3):
+	def identify_champion(self, image):
+		self._reset_results()
+		if len(image.shape) == 3:
 			image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 		for champion, championTemplate in self._championTemplates.items():
 			self._evaluate(image, champion)
 		return self._result
+
 
 class Desktop(MatcherAbstract):
 	def match(self, frame):
 		template = cv2.imread(os.path.join(self._assets_path, 'icons/windows-icon.png'), 0)
 		result = cv2.matchTemplate(cv2.cvtColor(frame[1043:1080, 0:37], cv2.COLOR_BGR2GRAY), template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		if (max_val > 0.95):
-			return (True, {})
-		return (False, {})
+		if max_val > 0.95:
+			return True, {}
+		return False, {}
+
 
 class Desktop5Seconds(Desktop):
 	def __init__(self):
@@ -81,18 +84,19 @@ class Desktop5Seconds(Desktop):
 
 	def match(self, frame):
 		match, data = super().match(frame)
-		if (match):
-			if (self.lastMatch is None):
+		if match:
+			if self.lastMatch is None:
 				self.lastMatch = datetime.now()
-				return (False, {})
-			elif(self.lastMatch + timedelta(seconds=5) > datetime.now()):
-				return (False, {})
+				return False, {}
+			elif self.lastMatch + timedelta(seconds=5) > datetime.now():
+				return False, {}
 			else:
 				self.lastMatch = None
-				return (True, {})
+				return True, {}
 		else:
 			self.lastMatch = None
-			return (False, {})
+			return False, {}
+
 
 class Scoreboard(MatcherAbstract):
 	def __init__(self):
@@ -102,9 +106,10 @@ class Scoreboard(MatcherAbstract):
 	def match(self, frame):		
 		res = cv2.matchTemplate(cv2.cvtColor(frame[40:140, 20:120], cv2.COLOR_BGR2GRAY), self.template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-		if (max_val > 0.96):
-			return (True, {})
-		return (False, {})
+		if max_val > 0.96:
+			return True, {}
+		return False, {}
+
 
 class DuelEndScoreboard(Scoreboard):
 	def __init__(self):
@@ -112,11 +117,11 @@ class DuelEndScoreboard(Scoreboard):
 	
 	def match(self, frame):		
 		match, data = super().match(frame)
-		if (match):
+		if match:
 			text = self.ocr.get_text_hsv(frame[0:45, 110:300], [0, 0, 163], [179, 255, 255]).replace("\n","")
 			if any(word in text for word in ['Press', 'ESC', 'to', 'Skip']):
-				return (True, {})
-		return (False, {})
+				return True, {}
+		return False, {}
 
 
 class MainMenu(MatcherAbstract):
@@ -127,9 +132,9 @@ class MainMenu(MatcherAbstract):
 	def match(self, frame):
 		result = cv2.matchTemplate(cv2.cvtColor(frame[1030:1060, 130:240], cv2.COLOR_BGR2GRAY), self.template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		if (max_val > 0.95): 
-			return (True, {})
-		return (False, {})
+		if max_val > 0.95:
+			return True, {}
+		return False, {}
 
 
 class MenuLoading(MatcherAbstract):
@@ -140,9 +145,10 @@ class MenuLoading(MatcherAbstract):
 	def match(self, frame):
 		result = cv2.matchTemplate(cv2.cvtColor(frame[480:680, 730:1200], cv2.COLOR_BGR2GRAY), self.template[480:680, 730:1200], cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-		if (max_val > 0.95): 
-			return (True, {})
-		return (False, {})
+		if max_val > 0.95:
+			return True, {}
+		return False, {}
+
 
 class WarmupEnd(MatcherAbstract):
 	def __init__(self):
@@ -158,25 +164,24 @@ class WarmupEnd(MatcherAbstract):
 	def sanitize_map_name(self, name):
 		return "".join([x for x in name if x.isalnum() or x.isspace()])
 
-
-	def getPlayerChampion(self, frame):
+	def get_player_champion(self, frame):
 		champImageSize = 56
 		champY = 28
 		champX = 679
-		return self.champion_matcher.identifyChampion(frame[champY:champY+champImageSize, champX:champX+champImageSize])
+		return self.champion_matcher.identify_champion(frame[champY:champY + champImageSize, champX:champX + champImageSize])
 
-	def getOpponentChampion(self, frame):
+	def get_opponent_champion(self, frame):
 		champImageSize = 56
 		champY = 28
 		champX = 1182
-		return self.champion_matcher.identifyChampion(frame[champY:champY+champImageSize, champX:champX+champImageSize])
+		return self.champion_matcher.identify_champion(frame[champY:champY + champImageSize, champX:champX + champImageSize])
 
 	def save_incorrect_ocr(self, frame):
 		path = os.path.join(current_app.instance_path, 'incorrect_images')
 		try:
-		   os.makedirs(path)
+			os.makedirs(path)
 		except FileExistsError:
-		   pass # directory already exists
+			pass # directory already exists
 		cv2.imwrite(os.path.join(path, str(id(frame)) + '.png'), frame)
 
 	def match(self, frame):
@@ -184,36 +189,36 @@ class WarmupEnd(MatcherAbstract):
 		lower = np.array([0, 250, 220])
 		higher = np.array([5, 255, 255])
 		mask = cv2.inRange(hsv, lower, higher)
-		if (mask[0,0] == 0):
+		if mask[0,0] == 0:
 			lower = np.array([175, 250, 220])
 			higher = np.array([180, 255, 255])
 			mask = cv2.inRange(hsv, lower, higher)
-		if (mask[0,0] == 255):
+		if mask[0,0] == 255:
 			lower = np.array([0, 0, 92])
 			higher = np.array([179, 60, 255])
 			p_name = self.ocr.get_text_hsv(frame[92:114, 660:875], lower, higher).replace("\n", "")
-			if (p_name == "SLAVE"):
+			if p_name == "SLAVE":
 				p_name = "SL4VE"
 			o_name = self.ocr.get_text_hsv(frame[92:114, 1040:1238], lower, higher).replace("\n", "")
-			if (not self.stats.player_exists(p_name) or not self.stats.player_exists(o_name)):
+			if not self.stats.player_exists(p_name) or not self.stats.player_exists(o_name):
 				self.save_incorrect_ocr(frame)
-			if (o_name not in self.ignore_bots):
-				return (True, {
-					"player_champion_id": self.getPlayerChampion(frame),
-					"opponent_champion_id": self.getOpponentChampion(frame),
+			if o_name not in self.ignore_bots:
+				return True, {
+					"player_champion_id": self.get_player_champion(frame),
+					"opponent_champion_id": self.get_opponent_champion(frame),
 					"player_name": self.sanitize_player_name(p_name),
 					"opponent_name": self.sanitize_player_name(o_name)
-					})
-		return (False, {})
+					}
+		return False, {}
+
 
 class MapLoading(MatcherAbstract):
 
 	def __init__(self):
 		super().__init__()
-		self._loadTemplates()
+		self._load_templates()
 
-
-	def _loadTemplates(self):
+	def _load_templates(self):
 		from .extensions import db
 		from .models import Map
 		from sqlalchemy import select
@@ -222,18 +227,18 @@ class MapLoading(MatcherAbstract):
 		for map in maps:
 			self.mapTemplates[map.code] = cv2.imread(os.path.join(current_app.root_path, map.template_path), 0)
 
-
 	def match(self, frame):
 		for map, template in self.mapTemplates.items():			
 			result = cv2.matchTemplate(cv2.cvtColor(frame[105:155, 170:590], cv2.COLOR_BGR2GRAY), template[105:155, 170:590], cv2.TM_CCOEFF_NORMED)
 			min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-			if (max_val > 0.95): 
+			if max_val > 0.95:
 				result = cv2.matchTemplate(cv2.cvtColor(frame[75:110, 170:800], cv2.COLOR_BGR2GRAY), template[75:110, 170:800], cv2.TM_CCOEFF_NORMED)
 				min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-				if (max_val > 0.95):
-					return (True, {'map_id': map})
-		return (False, {})
+				if max_val > 0.95:
+					return True, {'map_id': map}
+		return False, {}
+
 
 class Ocr:
 	def get_text_hsv(self, image, lower, upper):
@@ -243,4 +248,4 @@ class Ocr:
 		mask = cv2.inRange(hsv, lower, upper)
 		result = 255 - mask
 		whitelist = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM."
-		return (pytesseract.image_to_string(result, lang='eng',config='--psm 6 --tessdata-dir ' + os.path.join(current_app.root_path, 'assets') + '  -c tessedit_char_whitelist=' + whitelist + ' -c page_separator=""'))
+		return pytesseract.image_to_string(result, lang='eng',config='--psm 6 --tessdata-dir ' + os.path.join(current_app.root_path, 'assets') + '  -c tessedit_char_whitelist=' + whitelist + ' -c page_separator=""')

@@ -50,7 +50,7 @@ def test_matcher_match(app, requests_get_404, matchers, matcher, image_path, exp
 def test_champion_matcher(app, champion_matcher, image_path, expected_result):
 	assert os.path.isfile(image_path) == True
 	with app.app_context():
-		result = champion_matcher.identifyChampion(cv2.imread(image_path))
+		result = champion_matcher.identify_champion(cv2.imread(image_path))
 	assert result == expected_result
 
 @pytest.mark.parametrize('matcher,image_path,expected_data', [
