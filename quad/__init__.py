@@ -54,4 +54,7 @@ def create_app(test_config=None):
     from . import games
     app.register_blueprint(games.bp)
 
+    from . import tools
+    app.register_blueprint(tools.bp)
+
     return app
