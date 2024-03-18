@@ -11,7 +11,7 @@ def create_app(test_config=None):
         SQLALCHEMY_DATABASE_URI='sqlite:///quad.db',
         FFMPEG_OVER_SSH=False,
         OBS_RECORDING_SCENE="Recording",
-        OBS_SKIP_RECORDING_WHEN_STREAMING = False,
+        OBS_SKIP_RECORDING_WHEN_STREAMING=False,
         RECORDERS="x264"
     )
 
