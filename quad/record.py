@@ -148,8 +148,10 @@ class ObsRecorder(Recorder):
     def can_record(self):
         if not self.connect():
             return False
-        streaming = self.obs.get_stream_status().output_active
-        return not streaming
+        return not self._is_streaming() or not current_app.config["OBS_SKIP_RECORDING_WHEN_STREAMING"]
+
+    def _is_streaming(self):
+        return self.obs.get_stream_status().output_active
 
     def connect(self):
         from websocket import WebSocketConnectionClosedException
@@ -176,7 +178,8 @@ class ObsRecorder(Recorder):
         super().start(game)
         self.current_game = game
         if self.connect():
-            self.obs.set_current_program_scene(current_app.config["OBS_RECORDING_SCENE"])
+            if not self._is_streaming() or not current_app.config["OBS_SKIP_SWITCHING_SCENES_WHEN_STREAMING"]:
+                self.obs.set_current_program_scene(current_app.config["OBS_RECORDING_SCENE"])
             self.obs.start_record()
 
     def stop(self):

@@ -12,6 +12,7 @@ def create_app(test_config=None):
         FFMPEG_OVER_SSH=False,
         OBS_RECORDING_SCENE="Recording",
         OBS_SKIP_RECORDING_WHEN_STREAMING=False,
+        OBS_SKIP_SWITCHING_SCENES_WHEN_STREAMING=True,
         RECORDERS="x264"
     )
 
