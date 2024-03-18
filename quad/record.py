@@ -12,7 +12,7 @@ class RecorderManager:
         self.path_generator = GamePathGenerator()
         self.current_recorder = None
         self.available_recorders = []
-        for recorder in current_app.config["RECORDERS"].split(','):
+        for recorder in current_app.config["RECORDERS"]:
             self.available_recorders.append(RecorderFactory.get(recorder))
         from .core import signal_game_starts, signal_game_ends
         signal_game_starts.connect(self.on_game_starts)

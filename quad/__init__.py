@@ -10,6 +10,9 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI='sqlite:///quad.db',
         FFMPEG_OVER_SSH=False,
+        OBS_RECORDING_SCENE="Recording",
+        OBS_SKIP_RECORDING_WHEN_STREAMING = False,
+        RECORDERS="x264"
     )
 
     if test_config is None:
