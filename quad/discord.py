@@ -43,8 +43,8 @@ def bot():
 		message = await channel.fetch_message(payload.message_id)
 
 		game = Game.from_discord_id(payload.message_id)
-		if game is None:
-			current_app.logger.error("Cannot start YT upload: Game not found")
+		if game is None or game.get('recording_path') is None:
+			current_app.logger.error("Cannot start YT upload: Game not found or no recording available")
 			return
 		yt = YouTubeUploader()
 		yt_link = yt.upload(game)
