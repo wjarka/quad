@@ -35,7 +35,8 @@ def send_screenshot(game):
 def bot():
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_presfix='$', intents=intents)
+    bot = commands.Bot(command_prefix='/', intents=intents)
+
 
     async def reaction_youtube(sender, payload, **extra):
         if "DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS" in current_app.config and payload.user_id not in current_app.config["DISCORD_YOUTUBE_UPLOAD_ALLOWED_USERS"]:
@@ -72,6 +73,13 @@ def bot():
     async def on_raw_reaction_add(payload):
         await signal('discord-reaction-' + payload.emoji.name).send_async(current_app._get_current_object(),
                                                                           payload=payload)
+
+    ocr = bot.create_group("ocr", "OCR Commands")
+
+    @ocr.command(name='vocabulary-add')
+    async def vocabulary_add(ctx:discord.ApplicationContext, current_name, name):
+        await ctx.send(current_name)
+
 
     bot.run(current_app.config["DISCORD_BOT_SECRET"])
 
