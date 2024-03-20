@@ -120,6 +120,11 @@ class FfmpegX264Recorder(FfmpegRecorder):
 
 class FfmpegHevcVaapiRecorder(FfmpegRecorder):
 
+    def can_record(self):
+        import pexpect
+        output, status = pexpect.run("ffmpeg -hide_banner -loglevel error -init_hw_device vaapi=foo:/dev/dri/renderD128", withexitstatus=True)
+        return status == 1
+
     def prepare_ffmpeg_command(self, path, source_name):
         from .common import prepare_command
         return prepare_command(f"ffmpeg -hide_banner -loglevel error -init_hw_device vaapi=foo:/dev/dri/renderD128 \
