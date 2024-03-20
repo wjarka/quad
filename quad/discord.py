@@ -75,7 +75,7 @@ def bot():
 
     @bot.event
     async def on_message(message):
-        if message.channel.id == current_app.config["DISCORD_GAMES_CHANNEL_ID"] and message.webhook_id is not None:
+        if message.channel.id == current_app.config["DISCORD_GAMES_CHANNEL_ID"] and message.webhook_id is not None and message.interaction is None:
             for emoji_id in current_app.config["DISCORD_ACTION_EMOJI_IDS"]:
                 await message.add_reaction(bot.get_emoji(emoji_id))
 
