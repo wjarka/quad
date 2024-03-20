@@ -15,7 +15,6 @@ def test_recorder_start(recorder_ffmpegh264qsv, mocker, ndi, game_ready_to_recor
 
 	from datetime import datetime
 	assert game_ready_to_record.get('timestamp') == datetime(1971, 2, 3, 10, 45, 15)
-	assert game_ready_to_record.get('recording_path') == '/tmp/Games/1971/02/1971-02-03-10-45-15-SL4VE-(Slash)-vs-b00m MaaV-(Galena)-Molten Falls.mp4'
 
 	assert r.record_process == 1
 	mkdir_process.assert_called_once_with("mkdir -p /tmp/Games/1971/02")

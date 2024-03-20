@@ -41,7 +41,7 @@ def test_frame_processor_status_transitions(app, fp, db, session, requests_get_4
 		fp.process(frame)
 	assert fp.current_status == end_status
 
-def test_database_consistency(app, fp, db, session):
+def test_database_consistency(app, mocker, fp, db, session):
 	import cv2
 	fp.change_status(STATUS_WAITING_FOR_GAME)
 	with signal('game-found').muted():

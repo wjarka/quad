@@ -23,7 +23,7 @@ import quad.matchers as m
 	('MenuLoading', 'tests/assets/loading-menu.png', True),
 	('MapLoading', 'tests/assets/loading-map.png', True)
 ])
-def test_matcher_match(app, requests_get_404, matchers, matcher, image_path, expected_result):
+def test_matcher_match(app, requests_get_404, matchers, mocker, matcher, image_path, expected_result):
 	# assert os.path.isfile(image_path) == True
 	with app.app_context():
 		result, data = matchers[matcher].match(cv2.imread(image_path))
@@ -76,7 +76,7 @@ def test_matcher_data(app, matchers, matcher, image_path, expected_data):
 	('tests/assets/ocr_sl4ve_athena_airwalker_strogg.png', 'AirWalker')
 	# ('tests/assets/ocr_.png', ''),
 ])
-def test_warmupend_ocr(app, requests_get_404, matchers, image_path, expected_name):
+def test_warmupend_ocr(app, requests_get_404, mocker, matchers, image_path, expected_name):
 	with app.app_context():
 		result, data = matchers['WarmupEnd'].match(cv2.imread(image_path))
 	assert data['opponent_name'] == expected_name

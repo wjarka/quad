@@ -208,9 +208,10 @@ class WarmupEnd(MatcherAbstract):
 			p_name = self.get_corrected_name(self.ocr.get_text_hsv(frame[92:114, 660:875], lower, higher).replace("\n", ""))
 			o_name = self.get_corrected_name(self.ocr.get_text_hsv(frame[92:114, 1040:1238], lower, higher).replace("\n", ""))
 			if not self.stats.player_exists(p_name) or not self.stats.player_exists(o_name):
-				from .discord import send_message
-				send_message(current_app.config["DISCORD_WEBHOOK_STATUS"],
-							 f"{p_name} or {o_name} is an incorrect player name.", frame)
+				if "DISCORD_WEBHOOK_STATUS" in current_app.config:
+					from .discord import send_message
+					send_message(current_app.config["DISCORD_WEBHOOK_STATUS"],
+								 f"{p_name} or {o_name} is an incorrect player name.", frame)
 			if o_name not in self.ignore_bots:
 				return True, {
 					"player_champion_id": self.get_player_champion(frame),
