@@ -76,23 +76,23 @@ class FfmpegRecorder(Recorder, metaclass=ABCMeta):
     def __init__(self):
         super().__init__()
         self.record_process = None
+        self.current_game = None
+        from quad.games import GamePathGenerator
+        self.path_generator = GamePathGenerator()
         if "RECORDER_BITRATE" in current_app.config:
             self.bitrate = current_app.config["RECORDER_BITRATE"]
         else:
             self.bitrate = '6M'
 
     def start(self, game):
-        from quad.games import GamePathGenerator
-        path_generator = GamePathGenerator()
         super().start(game)
-        path = path_generator.get_recording_path(game)
-        game.set('recording_path', path)
+        self.current_game = game
+        path = self.path_generator.get_recording_path(game)
         source_name = current_app.config["NDI_STREAM"]
         dir_to_create = os.path.dirname(path)
         command = self.prepare_ffmpeg_command(path, source_name)
         from .common import prepare_command
         dir_command = prepare_command(f"mkdir -p {dir_to_create}")
-
         pexpect.run(dir_command)
         self.record_process = pexpect.spawn(command)
         game.save_model()
@@ -106,6 +106,12 @@ class FfmpegRecorder(Recorder, metaclass=ABCMeta):
         super().stop()
         if self.record_process is not None:
             self.record_process.sendintr()
+        import os.path
+        recording_path = self.path_generator.get_recording_path(self.current_game)
+        if os.path.isfile(recording_path):
+            self.current_game.set('recording_path', recording_path)
+            self.current_game.save_model()
+        self.current_game = None
 
 
 class FfmpegX264Recorder(FfmpegRecorder):
@@ -198,7 +204,8 @@ class ObsRecorder(Recorder):
         from .games import GamePathGenerator
         path_generator = GamePathGenerator()
         destination_path = path_generator.get_recording_path(self.current_game)
-        self.current_game.set('recording_path', destination_path)
-        pexpect.run(f"mv \"{source_path}\" \"{destination_path}\"")
-        self.current_game.save_model()
+        output, status = pexpect.run(f"mv \"{source_path}\" \"{destination_path}\"", withexitstatus=True)
+        if status == 0:
+            self.current_game.set('recording_path', destination_path)
+            self.current_game.save_model()
         self.current_game = None
