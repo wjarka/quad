@@ -162,6 +162,8 @@ class PlayerRenamer:
                     webhook.edit_message(message_id=message_id, content=game.get_game_identifier())
             except discord.NotFound:
                 pass
+            except AttributeError:
+                pass
         game.save_model()
 
 
