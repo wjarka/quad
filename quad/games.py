@@ -135,6 +135,7 @@ class PlayerRenamer:
 
 
     def rename_game(self, game, name, field):
+        current_app.logger.info("Attempting to update name for game (" + game.model.id + ")")
         import pexpect
         import discord
         path_generator = GamePathGenerator()
