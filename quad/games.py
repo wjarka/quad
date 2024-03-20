@@ -143,13 +143,14 @@ class PlayerRenamer:
         game.set(field, name)
         dest_rec_path = path_generator.get_recording_path(game)
         dest_scr_path = path_generator.get_screenshot_path(game)
+        import os.path
         if source_rec_path:
-            output, status = pexpect.run(f"mv \"{source_rec_path}\" \"{dest_rec_path}\"", withexitstatus=True)
-            if status == 0:
+            pexpect.run(f"mv \"{source_rec_path}\" \"{dest_rec_path}\"")
+            if os.path.isfile(dest_rec_path):
                 game.set('recording_path', dest_rec_path)
         if source_scr_path:
-            output, status = pexpect.run(f"mv \"{source_scr_path}\" \"{dest_scr_path}\"", withexitstatus=True)
-            if status == 0:
+            pexpect.run(f"mv \"{source_scr_path}\" \"{dest_scr_path}\"")
+            if os.path.isfile(dest_scr_path):
                 game.set('screenshot_path', dest_scr_path)
         if game.get('discord_message_id') is not None:
             message_id = game.get('discord_message_id')
