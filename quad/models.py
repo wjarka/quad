@@ -45,6 +45,11 @@ class Player(db.Model):
     id: Mapped[intpk]
     name: Mapped[str]
 
+class OcrVocabulary(db.Model):
+    id: Mapped[intpk]
+    text_read: Mapped[str]
+    text: Mapped[str]
+
 class Game(MassUpdateableMixin, db.Model):
     id: Mapped[intpk]
     timestamp: Mapped[timestamp]

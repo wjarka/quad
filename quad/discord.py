@@ -19,17 +19,27 @@ def send_screenshot_hook(sender, game, **extra):
 
 
 def send_screenshot(game):
-    webhook = discord.SyncWebhook.from_url(current_app.config["DISCORD_WEBHOOK_GAMES"])
     frame = game.get_final_score_frame()
+    webhook_url = current_app.config["DISCORD_WEBHOOK_GAMES"]
+    text = game.get_game_identifier()
     if (frame is not None):
-        img_string = BytesIO(cv2.imencode('.png', frame)[1].tobytes())
-        file = discord.File(img_string, filename="image.png")
-        embed = discord.Embed()
-        embed.set_image(url="attachment://image.png")
-        message = webhook.send(game.get_game_identifier(), file=file, embed=embed, wait=True)
+        message = send_message(webhook_url, text, frame)
         from .extensions import db
         game.set('discord_message_id', message.id)
         db.session.commit()
+
+
+def send_message(webhook_url, text, image=None):
+    webhook = discord.SyncWebhook.from_url(webhook_url)
+    if image is not None:
+        img_string = BytesIO(cv2.imencode('.png', image)[1].tobytes())
+        file = discord.File(img_string, filename="image.png")
+        embed = discord.Embed()
+        embed.set_image(url="attachment://image.png")
+        message = webhook.send(text, file=file, embed=embed, wait=True)
+    else:
+        message = webhook.send(text)
+    return message
 
 
 def bot():
@@ -78,8 +88,10 @@ def bot():
 
     @ocr.command(name='vocabulary-add')
     async def vocabulary_add(ctx:discord.ApplicationContext, current_name, name):
-        await ctx.send(current_name)
-
+        from .games import PlayerRenamer
+        renamer = PlayerRenamer()
+        renamer.rename(current_name, name)
+        await ctx.respond("OCR Correction added to vocabulary. Attempted to fix previous games.")
 
     bot.run(current_app.config["DISCORD_BOT_SECRET"])
 

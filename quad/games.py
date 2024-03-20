@@ -115,6 +115,53 @@ class Game:
             self.set(key, value)
 
 
+class PlayerRenamer:
+    def rename(self, current_name, name):
+        from .models import OcrVocabulary
+        from .models import Game as GameModel
+        from .extensions import db
+        from sqlalchemy import select
+        existing_vocabulary = db.session.scalar(select(OcrVocabulary).where(OcrVocabulary.text_read == current_name))
+        if existing_vocabulary is None:
+            vocabulary = OcrVocabulary()
+            vocabulary.text_read = current_name
+            vocabulary.text = name
+            db.session.add(vocabulary)
+            db.session.commit()
+        for game_model in db.session.scalars(select(GameModel).where(GameModel.player_name == current_name)):
+            self.rename_game(Game(model=game_model), name, 'player_name')
+        for game_model in db.session.scalars(select(GameModel).where(GameModel.opponent_name == current_name)):
+            self.rename_game(Game(model=game_model), name, 'opponent_name')
+
+
+    def rename_game(self, game, name, field):
+        import pexpect
+        import discord
+        path_generator = GamePathGenerator()
+        source_rec_path = game.get('recording_path')
+        source_scr_path = game.get('screenshot_path')
+        game.set(field, name)
+        dest_rec_path = path_generator.get_recording_path(game)
+        dest_scr_path = path_generator.get_screenshot_path(game)
+        if source_rec_path:
+            output, status = pexpect.run(f"mv \"{source_rec_path}\" \"{dest_rec_path}\"", withexitstatus=True)
+            if status == 0:
+                game.set('recording_path', dest_rec_path)
+        if source_scr_path:
+            output, status = pexpect.run(f"mv \"{source_scr_path}\" \"{dest_scr_path}\"", withexitstatus=True)
+            if status == 0:
+                game.set('screenshot_path', dest_scr_path)
+        if game.get('discord_message_id') is not None:
+            message_id = game.get('discord_message_id')
+            try:
+                webhook = discord.SyncWebhook.from_url(current_app.config["DISCORD_WEBHOOK_GAMES"])
+                if message_id:
+                    webhook.edit_message(message_id=message_id, content=game.get_game_identifier())
+            except discord.NotFound:
+                pass
+        game.save_model()
+
+
 class GamePathGenerator:
     def get_recording_path(self, game):
         return current_app.config["PATH_RECORDING"].format(**self._path_dictionary(game))

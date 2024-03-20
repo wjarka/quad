@@ -184,6 +184,15 @@ class WarmupEnd(MatcherAbstract):
 			pass # directory already exists
 		cv2.imwrite(os.path.join(path, str(id(frame)) + '.png'), frame)
 
+	def get_corrected_name(self, name):
+		from .extensions import db
+		from sqlalchemy import select
+		from .models import OcrVocabulary
+		model = db.session.scalar(select(OcrVocabulary).where(OcrVocabulary.text_read == name))
+		if model:
+			return model.text
+		return name
+
 	def match(self, frame):
 		hsv = cv2.cvtColor(frame[50:51, 920:921], cv2.COLOR_BGR2HSV)
 		lower = np.array([0, 250, 220])
@@ -196,12 +205,12 @@ class WarmupEnd(MatcherAbstract):
 		if mask[0,0] == 255:
 			lower = np.array([0, 0, 92])
 			higher = np.array([179, 60, 255])
-			p_name = self.ocr.get_text_hsv(frame[92:114, 660:875], lower, higher).replace("\n", "")
-			if p_name == "SLAVE":
-				p_name = "SL4VE"
-			o_name = self.ocr.get_text_hsv(frame[92:114, 1040:1238], lower, higher).replace("\n", "")
+			p_name = self.get_corrected_name(self.ocr.get_text_hsv(frame[92:114, 660:875], lower, higher).replace("\n", ""))
+			o_name = self.get_corrected_name(self.ocr.get_text_hsv(frame[92:114, 1040:1238], lower, higher).replace("\n", ""))
 			if not self.stats.player_exists(p_name) or not self.stats.player_exists(o_name):
-				self.save_incorrect_ocr(frame)
+				from .discord import send_message
+				send_message(current_app.config["DISCORD_WEBHOOK_STATUS"],
+							 f"{p_name} or {o_name} is an incorrect player name.", frame)
 			if o_name not in self.ignore_bots:
 				return True, {
 					"player_champion_id": self.get_player_champion(frame),
