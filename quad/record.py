@@ -58,6 +58,8 @@ class RecorderFactory:
             return FfmpegH264QsvRecorder()
         if name == 'hevc_vaapi':
             return FfmpegHevcVaapiRecorder()
+        if name == 'h264_vaapi':
+            return FfmpegH264VaapiRecorder()
 
 
 class Recorder:
@@ -124,18 +126,30 @@ class FfmpegX264Recorder(FfmpegRecorder):
 		 -preset medium -b:v {self.bitrate} -bufsize 1M -maxrate {self.bitrate} '{path}' -y")
 
 
-class FfmpegHevcVaapiRecorder(FfmpegRecorder):
-
+class FfmpegVaapiRecorder(FfmpegRecorder):
     def can_record(self):
         import pexpect
         output, status = pexpect.run("ffmpeg -hide_banner -loglevel error -init_hw_device vaapi=foo:/dev/dri/renderD128", withexitstatus=True)
         return status == 1
+
+
+class FfmpegHevcVaapiRecorder(FfmpegVaapiRecorder):
 
     def prepare_ffmpeg_command(self, path, source_name):
         from .common import prepare_command
         return prepare_command(f"ffmpeg -hide_banner -loglevel error -init_hw_device vaapi=foo:/dev/dri/renderD128 \
             -use_wallclock_as_timestamps 1 -rtbufsize 1024M -thread_queue_size 8192 -f libndi_newtek -i '{source_name}' \
             -codec:v hevc_vaapi -threads 0 -codec:a aac -g 250 -keyint_min 250 -profile:v main \
+            -vf 'format=nv12,hwupload' -b:v {self.bitrate} -bufsize 1M -maxrate {self.bitrate} '{path}' -y")
+
+
+class FfmpegH264VaapiRecorder(FfmpegVaapiRecorder):
+
+    def prepare_ffmpeg_command(self, path, source_name):
+        from .common import prepare_command
+        return prepare_command(f"ffmpeg -hide_banner -loglevel error -init_hw_device vaapi=foo:/dev/dri/renderD128 \
+            -use_wallclock_as_timestamps 1 -rtbufsize 1024M -thread_queue_size 8192 -f libndi_newtek -i '{source_name}' \
+            -codec:v h264_vaapi -threads 0 -codec:a aac -g 250 -keyint_min 250 -profile:v main \
             -vf 'format=nv12,hwupload' -b:v {self.bitrate} -bufsize 1M -maxrate {self.bitrate} '{path}' -y")
 
 
