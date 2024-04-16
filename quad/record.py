@@ -196,7 +196,7 @@ class ObsRecorder(Recorder):
                                      port=current_app.config["OBS_WEBSOCKET_PORT"],
                                      timeout=1)
             return True
-        except TimeoutError:
+        except (TimeoutError, ConnectionResetError):
             return False
 
     def start(self, game):
