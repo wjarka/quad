@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from json import JSONDecodeError
+
 from flask import current_app
 import os
 import pexpect
@@ -184,7 +186,7 @@ class ObsRecorder(Recorder):
             return self._connect()
         try:
             self.obs.get_version()
-        except WebSocketConnectionClosedException:
+        except (WebSocketConnectionClosedException, JSONDecodeError):
             return self._connect()
         return True
 
