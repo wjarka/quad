@@ -6,6 +6,7 @@ import quad.matchers as m
 
 @pytest.mark.parametrize('matcher,image_path,expected_result', [
 	('WarmupEnd', 'tests/assets/warmupend.png', True),
+	('WarmupEnd', 'tests/assets/warmupend_1440_to_1080.png', True),
 	('WarmupEnd', 'tests/assets/warmupend_bot.png', False),
 	('Scoreboard', 'tests/assets/scoreboard.png', True),
 	('DuelEndScoreboard', 'tests/assets/scoreboard.png', True),

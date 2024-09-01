@@ -194,7 +194,7 @@ class WarmupEnd(MatcherAbstract):
 		return name
 
 	def match(self, frame):
-		hsv = cv2.cvtColor(frame[50:51, 920:921], cv2.COLOR_BGR2HSV)
+		hsv = cv2.cvtColor(frame[52:53, 920:921], cv2.COLOR_BGR2HSV)
 		lower = np.array([0, 250, 220])
 		higher = np.array([5, 255, 255])
 		mask = cv2.inRange(hsv, lower, higher)
