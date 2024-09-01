@@ -186,7 +186,7 @@ class ObsRecorder(Recorder):
             return self._connect()
         try:
             self.obs.get_version()
-        except (WebSocketConnectionClosedException, JSONDecodeError):
+        except (WebSocketConnectionClosedException, JSONDecodeError, TimeoutError):
             return self._connect()
         return True
 
