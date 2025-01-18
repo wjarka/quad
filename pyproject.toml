@@ -18,7 +18,7 @@ dependencies = [
 	"pytest",
 	"pytest-mock",
 	"obsws-python",
-	"audioop-lts; python_version > '3.11.2'"
+	"audioop-lts; python_version >= '3.13'"
 ]
 
 [build-system]
