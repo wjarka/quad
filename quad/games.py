@@ -40,8 +40,6 @@ class Game:
         game_model = db.session.scalar(
             select(GameModel).where(GameModel.discord_message_id == discord_id)
         )
-        print(discord_id)
-        print(game_model)
         return Game(model=game_model)
 
     @classmethod
