@@ -19,6 +19,8 @@ def send_screenshot_hook(sender, game, **extra):
 
 
 def send_screenshot(game):
+    if "DISCORD_WEBHOOK_GAMES" not in current_app.config:
+        return
     frame = game.get_final_score_frame()
     webhook_url = current_app.config["DISCORD_WEBHOOK_GAMES"]
     text = game.get_game_identifier()
@@ -88,10 +90,13 @@ def bot():
     @bot.event
     async def on_message(message):
         if (
-            message.channel.id == current_app.config["DISCORD_GAMES_CHANNEL_ID"]
+            "DISCORD_GAMES_CHANNEL_ID" in current_app.config
+            and message.channel.id == current_app.config["DISCORD_GAMES_CHANNEL_ID"]
             and message.webhook_id is not None
             and message.interaction is None
+            and "DISCORD_ACTION_EMOJI_IDS" in current_app.config
         ):
+
             for emoji_id in current_app.config["DISCORD_ACTION_EMOJI_IDS"]:
                 await message.add_reaction(bot.get_emoji(emoji_id))
 
@@ -113,7 +118,8 @@ def bot():
             "OCR Correction added to vocabulary. Attempted to fix previous games."
         )
 
-    bot.run(current_app.config["DISCORD_BOT_SECRET"])
+    if "DISCORD_BOT_SECRET" in current_app.config:
+        bot.run(current_app.config["DISCORD_BOT_SECRET"])
 
 
 class DiscordBotThread(Thread):
