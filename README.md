@@ -56,6 +56,7 @@ Arch Linux with the following packages installed:
 Or any linux distro with docker installed (if you want to run in a docker container)
 
 ## Gaming PC minimal setup
+- Windows 10/11
 - Download and install NDI Tools from https://ndi.video/tools/
 - Start Screen Capture or ScreenCapture HX
 - Set frame rate to 60 fps or 60 Hz (depending on HX or non-HX)
