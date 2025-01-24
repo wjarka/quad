@@ -76,6 +76,8 @@ pip install -e .
 
 ### Docker Container
 ```bash
+git clone https://github.com/wjarka/quad.git
+cd quad
 docker build -t quad .
 ```
 
