@@ -9,6 +9,7 @@ from . import matchers as m
 from blinker import signal
 from datetime import datetime, timedelta
 from . import zmq
+from . import tools
 
 signal_game_found = signal("game-found")
 signal_game_starts = signal("game-starts")
@@ -36,9 +37,10 @@ class Core:
         self.ndi_connector = NdiConnector(current_app.config["NDI_STREAM"])
         self.recorder_manager = RecorderManager()
         self.stream = TwitchStream()
-        self.zmq = zmq.Server(["core", "stream"])
+        self.zmq = zmq.Server(["core", "stream", "frame-capture"])
         self.pacer = Pacer()
         self.frame_processor = FrameProcessor()
+        self.save_frames = False
         self.stop = False
 
     def start_threads(self):
@@ -63,6 +65,8 @@ class Core:
                         self.stream.start()
                     if message.action == "stop":
                         self.stream.stop()
+                if message.service == "frame-capture":
+                    self.save_frames = message.action == "start"
                 self.zmq.respond_success()
         except Exception:
             self.zmq.respond_fail()
@@ -71,7 +75,10 @@ class Core:
         self.start_threads()
         while not self.stop:
             self.pacer.pace()
-            self.frame_processor.process(self.ndi_connector.read())
+            frame = self.ndi_connector.read()
+            if self.save_frames:
+                tools.save_frame(frame)
+            self.frame_processor.process(frame)
             self.process_message(self.zmq.get_message())
         self.zmq.shutdown()
 

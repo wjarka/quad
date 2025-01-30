@@ -65,5 +65,6 @@ def create_app(test_config=None):
     from . import tools
 
     app.register_blueprint(tools.bp)
+    app.register_blueprint(tools.fc)
 
     return app
